@@ -8,7 +8,7 @@ from .entity import IntegrationBlueprintSensor
 PARALLEL_UPDATES = 0
 
 if TYPE_CHECKING:
-    from custom_components.ha_integration_domain.data import IntegrationBlueprintConfigEntry
+    from custom_components.hager_flow.data import IntegrationBlueprintConfigEntry
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
