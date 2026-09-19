@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=../../schemas/yaml/services_schema.yaml
+# The names and descriptions here are only the fallback shown when a translation is
+# missing; users see services.<action>.* from translations/en.json.
+
+refresh_data:
+  name: Refresh data
+  description: Fetch the current device state immediately instead of waiting for the next poll.
+  fields:
+    config_entry_id:
+      name: Integration entry
+      description: The configuration entry to refresh.
+      required: true
+      example: 01JG3T2Q6Z9K4V8P0N5R7X2M1A
+      selector:
+        config_entry:
+          integration: ha_integration_domain

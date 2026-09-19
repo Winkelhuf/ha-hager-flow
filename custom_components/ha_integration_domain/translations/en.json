@@ -1,0 +1,152 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "If you need help with the configuration have a look at the [documentation]({documentation_url}).",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        },
+        "data_description": {
+          "username": "The account name you use to sign in to the device.",
+          "password": "The password for that account. It is stored encrypted and never written to the log."
+        }
+      },
+      "reconfigure": {
+        "description": "Update the credentials for this integration.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        },
+        "data_description": {
+          "username": "The account name you use to sign in to the device.",
+          "password": "The password for that account."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Reauthenticate integration",
+        "description": "The credentials for {username} are no longer valid. Provide updated credentials to restore access.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        },
+        "data_description": {
+          "username": "The account name you use to sign in to the device.",
+          "password": "The current password for that account."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Unable to connect to the server.",
+      "invalid_auth": "The username or password is wrong.",
+      "unknown": "An unknown error occurred."
+    },
+    "abort": {
+      "already_configured": "This entry is already configured.",
+      "reauth_successful": "Reauthentication was successful.",
+      "reconfigure_successful": "Reconfiguration was successful."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Configure integration options",
+        "description": "Customize how this integration operates.",
+        "data": {
+          "update_interval_hours": "Update interval (hours)"
+        },
+        "data_description": {
+          "update_interval_hours": "How often to fetch the device state, between 0.25 and 24 hours."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "authentication_failed": {
+      "message": "Authentication failed during the data update."
+    },
+    "update_failed": {
+      "message": "Failed to fetch data from the device."
+    },
+    "switch_set_failed": {
+      "message": "Failed to change the {name} setting on the device."
+    },
+    "number_set_failed": {
+      "message": "Failed to set the target humidity on the device."
+    },
+    "reset_filter_failed": {
+      "message": "Failed to reset the filter timer on the device."
+    },
+    "fan_speed_set_failed": {
+      "message": "Failed to change the fan speed on the device."
+    },
+    "fan_state_set_failed": {
+      "message": "Failed to turn the fan on or off."
+    },
+    "invalid_fan_speed": {
+      "message": "{speed} is not a fan speed this device supports."
+    },
+    "entry_not_found": {
+      "message": "No configuration entry of this integration matches {target}."
+    },
+    "entry_not_loaded": {
+      "message": "The configuration entry {target} is not loaded, so it cannot be refreshed."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "filter_life": {
+        "name": "Filter life remaining"
+      },
+      "runtime": {
+        "name": "Total runtime"
+      }
+    },
+    "binary_sensor": {
+      "filter_replacement": {
+        "name": "Filter replacement needed"
+      }
+    },
+    "switch": {
+      "child_lock": {
+        "name": "Child lock"
+      },
+      "led_display": {
+        "name": "LED display"
+      }
+    },
+    "select": {
+      "fan_speed": {
+        "name": "Fan speed",
+        "state": {
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High",
+          "auto": "Auto"
+        }
+      }
+    },
+    "number": {
+      "target_humidity": {
+        "name": "Target humidity"
+      }
+    },
+    "button": {
+      "reset_filter": {
+        "name": "Reset filter timer"
+      }
+    }
+  },
+  "services": {
+    "refresh_data": {
+      "name": "Refresh data",
+      "description": "Fetches the current device state immediately instead of waiting for the next poll.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Integration entry",
+          "description": "The configuration entry to refresh."
+        }
+      }
+    }
+  }
+}
