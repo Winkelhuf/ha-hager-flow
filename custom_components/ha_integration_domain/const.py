@@ -4,7 +4,7 @@ from logging import Logger, getLogger
 
 LOGGER: Logger = getLogger(__package__)
 
-DOMAIN = "ha_integration_domain"
+DOMAIN = "hager_flow"
 ATTRIBUTION = "Data provided by http://jsonplaceholder.typicode.com/"
 
 CONF_UPDATE_INTERVAL_HOURS = "update_interval_hours"
