@@ -1,5 +1,5 @@
 {
-  "name": "Integration blueprint",
+  "name": "Hager flow Modbus",
   "homeassistant": "2026.8.0",
   "hacs": "2.0.5"
 }
