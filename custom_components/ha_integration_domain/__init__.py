@@ -1,5 +1,5 @@
 """
-Custom integration to integrate ha_integration_domain with Home Assistant.
+Custom integration to integrate hager_flow with Home Assistant.
 
 For more details about this integration, please refer to:
 https://github.com/jpawlowski/hacs.integration_blueprint
