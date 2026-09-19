@@ -14,13 +14,13 @@ from ..const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 class HagerFlowCoordinator(DataUpdateCoordinator):
-    """Klasse zur Verwaltung des Datenabrufs über Modbus TCP."""
+    """Klasse zur Verwaltung des Datenabrufs über Modbus TCP mit Auto-Discovery."""
 
     def __init__(self, hass: HomeAssistant, host: str) -> None:
         """Initialisierung des Coordinators."""
         self.host = host
-        # Port 502 aus deiner YAML
         self.client = ModbusTcpClient(host=self.host, port=502)
+        self.discovered_meters: dict[int, str] = {} # Speichert {slave_id: "Zähler Name"}
         
         super().__init__(
             hass,
@@ -29,17 +29,46 @@ class HagerFlowCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=5),
         )
 
+    def _read_string_register(self, address: int, count: int, slave: int) -> str | None:
+        """Liest ein Register aus und konvertiert es in lesbaren Text (String)."""
+        try:
+            result = self.client.read_holding_registers(address, count=count, device_id=slave)
+            if result is None or result.isError():
+                return None
+            bytes_data = bytearray()
+            for reg in result.registers:
+                bytes_data.append((reg >> 8) & 0xFF)
+                bytes_data.append(reg & 0xFF)
+            return bytes_data.decode("utf-8", errors="ignore").strip("\x00").strip()
+        except Exception:
+            return None
+
+    def discover_meters(self) -> None:
+        """Scannt die Slaves 30 bis 37 ab. Akzeptiert NUR Geräte, die mit 'EC' beginnen."""
+        if not self.client.connected:
+            self.client.connect()
+        
+        _LOGGER.info("Starte strenges Auto-Discovery für Powermeter (Slaves 30-37)...")
+        for slave in range(30, 38):
+            # Namen auslesen (15 Register abfragen reicht für 'EC...')
+            name = self._read_string_register(4098, 15, slave)
+            
+            # STRENGER FILTER: Nur wenn ein Name existiert und mit "EC" beginnt!
+            if name and name.upper().startswith("EC"):
+                self.discovered_meters[slave] = name
+                _LOGGER.info("Hager Powermeter auf Slave %s erfolgreich erkannt: '%s'", slave, name)
+            else:
+                _LOGGER.debug("Slave %s hat kein gültiges EC-Gerät gemeldet. Wird ignoriert.", slave)
+
     def _read_register_value(self, address: int, slave: int, data_type: str) -> int | float | None:
-        """Hilfsfunktion zum Auslesen und Dekodieren eines Modbus-Registers."""
+        """Hilfsfunktion zum Auslesen eines Modbus-Registers."""
         try:
             count = 2 if data_type in ["int32", "uint32"] else 1
             result = self.client.read_holding_registers(address, count=count, device_id=slave)
             
-            if result.isError():
-                _LOGGER.error("Fehler beim Lesen von Register %s (Slave %s)", address, slave)
+            if result is None or result.isError():
                 return None
 
-            # Die neue, moderne Methode ab pymodbus 3.9+ nutzt die client-eigene Konvertierung
             if data_type == "int32":
                 return self.client.convert_from_registers(result.registers, self.client.DATATYPE.INT32)
             if data_type == "uint32":
@@ -47,10 +76,8 @@ class HagerFlowCoordinator(DataUpdateCoordinator):
             if data_type == "uint16":
                 return self.client.convert_from_registers(result.registers, self.client.DATATYPE.UINT16)
                 
-            return result.registers[0]
-            
-        except Exception as err:
-            _LOGGER.error("Modbus-Fehler an Adresse %s: %s", address, err)
+            return result.registers
+        except Exception:
             return None
 
     async def _async_update_data(self) -> dict[str, any]:
@@ -58,22 +85,30 @@ class HagerFlowCoordinator(DataUpdateCoordinator):
         if not self.client.connected:
             await self.hass.async_add_executor_job(self.client.connect)
 
-        # Importiert die Sensor-Definitionen
-        from ..sensor.descriptions import ENTITY_DESCRIPTIONS
+        # Beim allerersten Durchlauf einmalig scannen
+        if not self.discovered_meters:
+            await self.hass.async_add_executor_job(self.discover_meters)
+
+        from ..sensor.descriptions import ENTITY_DESCRIPTIONS, METER_SENSOR_TEMPLATES
 
         data = {}
         
+        # 1. Statische Hauptsensoren lesen
         for description in ENTITY_DESCRIPTIONS:
             val = await self.hass.async_add_executor_job(
-                self._read_register_value,
-                description.register_address,
-                description.slave_id,
-                description.data_type
+                self._read_register_value, description.register_address, description.slave_id, description.data_type
             )
             if val is not None:
-                data[description.key] = val
+                data[description.key] = val * description.scale
 
-        if not data:
-            raise UpdateFailed("Keine Daten vom Hager System empfangen")
+        # 2. Nur die erkannten Zusatz-Zähler abfragen
+        for slave, meter_name in self.discovered_meters.items():
+            for template in METER_SENSOR_TEMPLATES:
+                key = f"meter_{slave}_{template['key_suffix']}"
+                val = await self.hass.async_add_executor_job(
+                    self._read_register_value, template["addr"], slave, template["type"]
+                )
+                if val is not None:
+                    data[key] = val
 
         return data
