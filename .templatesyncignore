@@ -1,7 +1,7 @@
 # Template Sync Ignore File
 # ============================================================
 # Files and folders listed here will NOT be synced from the
-# upstream template (jpawlowski/hacs.integration_blueprint).
+# upstream template.
 #
 # Syntax follows .gitignore glob patterns.
 # See: https://github.com/AndreasAugustin/actions-template-sync
@@ -12,14 +12,14 @@
 custom_components/
 
 # ── Tests ────────────────────────────────────────────────────
-# Test files reference your integration domain (set by initialize.sh).
+# Test files reference your integration domain.
 # Future test files added by the blueprint would arrive with
-# ha_integration_domain hard-coded, breaking your imports.
+# placeholders hard-coded, breaking your imports.
 tests/
 
 # ── Project configuration ─────────────────────────────────────
 # These files are customized for your integration during initialization
-# (initialize.sh replaces ha_integration_domain and related strings).
+# (the setup replaces placeholders and related strings).
 # Syncing them back would revert those substitutions.
 pyproject.toml
 .yamllint.yml
@@ -27,7 +27,7 @@ pyproject.toml
 
 # ── Ignore pattern files ───────────────────────────────────────
 # .gitignore and .prettierignore contain a domain-specific negation pattern
-# (!custom_components/<your_domain>/) set by initialize.sh that cannot be
+# (!custom_components/hager_flow/) set during configuration that cannot be
 # expressed as a generic placeholder. Syncing would revert that line.
 .gitignore
 .prettierignore
