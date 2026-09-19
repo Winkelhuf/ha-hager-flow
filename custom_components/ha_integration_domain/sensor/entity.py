@@ -1,27 +1,23 @@
-"""Sensor entity for ha_integration_domain."""
+"""Basis-Sensor-Klasse für Hager flow."""
+from __future__ import annotations
 
-from collections.abc import Callable
-from dataclasses import dataclass
-from typing import Any
+from homeassistant.components.sensor import SensorEntity
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from custom_components.ha_integration_domain.entity import IntegrationBlueprintEntity
-from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
-from homeassistant.helpers.typing import StateType
+from .descriptions import HagerFlowSensorEntityDescription
 
+class IntegrationBlueprintSensor(CoordinatorEntity, SensorEntity):
+    """Repräsentiert einen Hager Modbus Sensor."""
 
-@dataclass(frozen=True, kw_only=True)
-class IntegrationBlueprintSensorEntityDescription(SensorEntityDescription):
-    """Describes a sensor and how to read it from coordinator data."""
+    entity_description: HagerFlowSensorEntityDescription
 
-    value_fn: Callable[[dict[str, Any]], StateType]
-
-
-class IntegrationBlueprintSensor(SensorEntity, IntegrationBlueprintEntity):
-    """Sensor backed by one value in the coordinator payload."""
-
-    entity_description: IntegrationBlueprintSensorEntityDescription
+    def __init__(self, coordinator, description: HagerFlowSensorEntityDescription) -> None:
+        """Initialisiere den Sensor."""
+        super().__init__(coordinator)
+        self.entity_description = description
+        self._attr_unique_id = f"hager_flow_{description.key}"
 
     @property
-    def native_value(self) -> StateType:
-        """Return the value read from coordinator data."""
-        return self.entity_description.value_fn(self.coordinator.data)
+    def native_value(self) -> any:
+        """Gibt den aktuellen Wert aus dem Coordinator zurück."""
+        return self.coordinator.data.get(self.entity_description.key)
