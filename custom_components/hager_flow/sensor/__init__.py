@@ -2,7 +2,7 @@
 from typing import TYPE_CHECKING
 from homeassistant.components.sensor import SensorStateClass
 
-from .descriptions import ENTITY_DESCRIPTIONS, METER_SENSOR_TEMPLATES, HagerFlowSensorEntityDescription
+from .descriptions import ENTITY_DESCRIPTIONS, METER_SENSOR_TEMPLATES, WALLBOX_SENSOR_TEMPLATES, HagerFlowSensorEntityDescription
 from .entity import IntegrationBlueprintSensor
 
 PARALLEL_UPDATES = 0
@@ -12,13 +12,11 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
     coordinator = entry.runtime_data.coordinator
     entities = []
 
-    # 1. ALLE festen Hauptsensoren hinzufügen (wird jetzt garantiert für alle 5 gemacht!)
+    # 1. Feste Hauptsensoren hinzufügen
     for description in ENTITY_DESCRIPTIONS:
-        entities.append(
-            IntegrationBlueprintSensor(coordinator, description, entry.entry_id)
-        )
+        entities.append(IntegrationBlueprintSensor(coordinator, description, entry.entry_id))
 
-    # 2. Dynamisch Sensoren für erkannte RTU-Zähler hinzufügen (falls welche antworten)
+    # 2. Dynamisch Sensoren für erkannte RTU-Zähler hinzufügen (30-37)
     if coordinator.discovered_meters:
         for slave, meter_name in coordinator.discovered_meters.items():
             for template in METER_SENSOR_TEMPLATES:
@@ -31,8 +29,23 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
                     native_unit_of_measurement=template["unit"],
                     state_class=SensorStateClass.MEASUREMENT,
                 )
-                entities.append(
-                    IntegrationBlueprintSensor(coordinator, dynamic_desc, entry.entry_id)
+                entities.append(IntegrationBlueprintSensor(coordinator, dynamic_desc, entry.entry_id))
+
+    # 3. Dynamisch Sensoren für erkannte Wallboxen hinzufügen (1-7)
+    if coordinator.discovered_wallboxes:
+        for slave, wb_name in coordinator.discovered_wallboxes.items():
+            for template in WALLBOX_SENSOR_TEMPLATES:
+                s_class = None if template["type"] == "string" else SensorStateClass.MEASUREMENT
+                
+                dynamic_desc = HagerFlowSensorEntityDescription(
+                    key=f"wb_{slave}_{template['key_suffix']}",
+                    name=f"{wb_name} {template['name_suffix']}",
+                    register_address=template["addr"],
+                    slave_id=slave,
+                    data_type=template["type"],
+                    native_unit_of_measurement=template["unit"],
+                    state_class=s_class,
                 )
+                entities.append(IntegrationBlueprintSensor(coordinator, dynamic_desc, entry.entry_id))
 
     async_add_entities(entities)
