@@ -1,9 +1,9 @@
-# Home Assistant Integration Blueprint
+# Home Assistant Integration Hager flow System
 
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2026.8%2B-blue.svg)](https://www.home-assistant.io/)
 [![Python](https://img.shields.io/badge/python-3.14%2B-blue.svg)](https://www.python.org/)
 [![AI Agent Ready](https://img.shields.io/badge/AI%20Agent-Ready-purple.svg)](#ai-agent-support)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+#[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)#
 
 A modern blueprint for creating Home Assistant custom integrations, based on [ludeeus/integration_blueprint](https://github.com/ludeeus/integration_blueprint) but closely aligned with **Home Assistant Core development practices**.
 
