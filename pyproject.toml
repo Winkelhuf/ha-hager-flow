@@ -6,15 +6,15 @@
 # - [tool.pylint.*] - Optional additional linting (Ruff is sufficient)
 
 [project]
-name = "ha_integration_domain"
+name = "hager_flow"
 version = "0.0.0"              # Version is managed in manifest.json only
 requires-python = ">=3.14"
 
 [tool.setuptools]
-packages = ["custom_components.ha_integration_domain"]
+packages = ["custom_components.hager_flow"]
 
 [tool.pyright]
-include = ["custom_components/ha_integration_domain"]
+include = ["custom_components/hager_flow"]
 exclude = [
     "**/.*",
     "**/__pycache__",
@@ -236,7 +236,7 @@ mark-parentheses = false
 
 [tool.ruff.lint.isort]
 force-sort-within-sections = true
-known-first-party = ["custom_components", "homeassistant"]
+known-first-party = ["custom_components.hager_flow", "homeassistant"]
 combine-as-imports = true
 split-on-trailing-comma = false
 
