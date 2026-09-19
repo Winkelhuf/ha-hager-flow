@@ -63,11 +63,27 @@ ENTITY_DESCRIPTIONS: tuple[HagerFlowSensorEntityDescription, ...] = (
     ),
 )
 
-# 2. DYNAMISCHE METER-VORLAGEN (Werden für jeden erkannten Slave 30-37 erzeugt)
+# 2. DYNAMISCHE METER-VORLAGEN (Slaves 30-37)
 METER_SENSOR_TEMPLATES: tuple[dict[str, any], ...] = (
-    {"key_suffix": "leistung", "name_suffix": "Leistung", "addr": 4153, "type": "int32", "unit": UnitOfPower.WATT},
-    {"key_suffix": "leistung_l1", "name_suffix": "Leistung L1", "addr": 4155, "type": "int32", "unit": UnitOfPower.WATT},
-    {"key_suffix": "leistung_l2", "name_suffix": "Leistung L2", "addr": 4157, "type": "int32", "unit": UnitOfPower.WATT},
-    {"key_suffix": "leistung_l3", "name_suffix": "Leistung L3", "addr": 4159, "type": "int32", "unit": UnitOfPower.WATT},
-    {"key_suffix": "energie_wh", "name_suffix": "Energie Wh", "addr": 4164, "type": "uint32", "unit": "Wh"},
+    {"key_suffix": "leistung", "name_suffix": "Leistung", "addr": 4153, "type": "int32", "scale": 1.0, "unit": UnitOfPower.WATT},
+    {"key_suffix": "leistung_l1", "name_suffix": "Leistung L1", "addr": 4155, "type": "int32", "scale": 1.0, "unit": UnitOfPower.WATT},
+    {"key_suffix": "leistung_l2", "name_suffix": "Leistung L2", "addr": 4157, "type": "int32", "scale": 1.0, "unit": UnitOfPower.WATT},
+    {"key_suffix": "leistung_l3", "name_suffix": "Leistung L3", "addr": 4159, "type": "int32", "scale": 1.0, "unit": UnitOfPower.WATT},
+    {"key_suffix": "energie_wh", "name_suffix": "Energie Wh", "addr": 4164, "type": "uint32", "scale": 1.0, "unit": "Wh"},
+)
+
+# 3. DYNAMISCHE WALLBOX-VORLAGEN (Slaves 1-7)
+WALLBOX_SENSOR_TEMPLATES: tuple[dict[str, any], ...] = (
+    {"key_suffix": "firmware", "name_suffix": "Firmware", "addr": 4165, "type": "string", "count": 32, "scale": 1.0, "unit": None},
+    {"key_suffix": "ip_adresse", "name_suffix": "IP Adresse", "addr": 5385, "type": "string", "count": 8, "scale": 1.0, "unit": None},
+    {"key_suffix": "solar_leistung", "name_suffix": "Witty Solar Leistung", "addr": 5125, "type": "int16", "scale": 1.0, "unit": UnitOfPower.WATT},
+    {"key_suffix": "gesamtenergie_geladen", "name_suffix": "Gesamtenergie geladen", "addr": 4609, "type": "uint32", "scale": 0.001, "unit": "kWh"},
+    {"key_suffix": "solarenergie_geladen", "name_suffix": "Solarenergie geladen", "addr": 4611, "type": "uint32", "scale": 0.001, "unit": "kWh"},
+    {"key_suffix": "verbunden", "name_suffix": "Verbunden", "addr": 4613, "type": "uint16", "scale": 1.0, "unit": None},
+    {"key_suffix": "boostmodus", "name_suffix": "Boostmodus", "addr": 4631, "type": "uint16", "scale": 1.0, "unit": None},
+    {"key_suffix": "ladesession_badge", "name_suffix": "Ladesession Badge", "addr": 4929, "type": "string", "count": 16, "scale": 1.0, "unit": None},
+    {"key_suffix": "ladung_gesamt_session", "name_suffix": "Ladung Gesamt aktuelle Session", "addr": 4950, "type": "uint32", "scale": 0.001, "unit": "kWh"},
+    {"key_suffix": "ladung_netz_session", "name_suffix": "Ladung Netz aktuelle Session", "addr": 4952, "type": "uint32", "scale": 0.001, "unit": "kWh"},
+    {"key_suffix": "ladung_pv_session", "name_suffix": "Ladung PV aktuelle Session", "addr": 4954, "type": "uint32", "scale": 0.001, "unit": "kWh"},
+    {"key_suffix": "ladesession_rfid", "name_suffix": "Ladesession RFID Karte", "addr": 5412, "type": "string", "count": 16, "scale": 1.0, "unit": None},
 )
