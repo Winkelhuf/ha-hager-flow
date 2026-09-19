@@ -15,11 +15,16 @@ if TYPE_CHECKING:
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: IntegrationBlueprintConfigEntry,
+    entry: any,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Richte die Sensor-Plattform ein."""
+    # Wir übergeben den Coordinator, die Beschreibung UND die einzigartige entry_id des Hubs
     async_add_entities(
-        IntegrationBlueprintSensor(entry.runtime_data.coordinator, description)
+        IntegrationBlueprintSensor(
+            entry.runtime_data.coordinator, 
+            description, 
+            entry.entry_id
+        ) 
         for description in ENTITY_DESCRIPTIONS
     )
