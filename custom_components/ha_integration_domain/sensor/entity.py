@@ -11,11 +11,13 @@ class IntegrationBlueprintSensor(CoordinatorEntity, SensorEntity):
 
     entity_description: HagerFlowSensorEntityDescription
 
-    def __init__(self, coordinator, description: HagerFlowSensorEntityDescription) -> None:
-        """Initialisiere den Sensor."""
+    def __init__(self, coordinator, description: HagerFlowSensorEntityDescription, entry_id: str) -> None:
+        """Initialisiere den Sensor mit Hub-spezifischer ID."""
         super().__init__(coordinator)
         self.entity_description = description
-        self._attr_unique_id = f"hager_flow_{description.key}"
+        # Durch entry_id wird der Sensor für jeden Hub absolut einzigartig!
+        self._attr_unique_id = f"{entry_id}_{description.key}"
+
 
     @property
     def native_value(self) -> any:
