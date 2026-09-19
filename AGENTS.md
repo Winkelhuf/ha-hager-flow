@@ -36,14 +36,14 @@ contributor's fork of the template is not a copy awaiting initialisation.
 
 **Identity — use these everywhere, never a variant:**
 
-- **Domain:** `ha_integration_domain`
-- **Title:** Integration Blueprint
-- **Class prefix:** `IntegrationBlueprint`
-- **Repository:** jpawlowski/hacs.integration_blueprint
+- **Domain:** `hager_flow`
+- **Title:** Hager flow Modbus
+- **Class prefix:** `HagerFlow`
+- **Repository:** Winkelhuf/ha-hager-flow
 
 **Key directories:**
 
-- `custom_components/ha_integration_domain/` — integration code
+- `custom_components/hager_flow/` — integration code
 - `config/` — Home Assistant configuration for local testing
 - `tests/` — mirrors the integration structure
 - `script/` — development and validation scripts
@@ -156,14 +156,12 @@ Full "do not use → use instead" table: [`ha-modern-apis`](.agents/skills/ha-mo
 - `service_actions/` — service action implementations
 - `utils/` — integration-wide utilities
 
-Top-level modules beside these: `config_flow.py` (a discovery shim), `diagnostics.py`, `repairs.py`, and — when the
-integration provides them — `trigger.py` / `condition.py` with their `triggers.yaml` / `conditions.yaml`.
+Top-level modules beside these: `config_flow.py` (contains the native config flow), `diagnostics.py`, `repairs.py`, and — when the integration provides them — `trigger.py` / `condition.py` with their `triggers.yaml` / `conditions.yaml`.
 
-`helpers/`, `common/`, `shared/`, `lib/` and any other new top-level package need explicit approval — use `utils/` or
-`entity_utils/` instead.
+`helpers/`, `common/`, `shared/`, `lib/` and any other new top-level package need explicit approval — use `utils/` or `entity_utils/` instead.
 
-`PLATFORMS` is defined in `__init__.py`. The top-level `config_flow.py` is only a discovery shim; the real flow lives
-in `config_flow_handler/`. `services.yaml` keeps its legacy filename.
+`PLATFORMS` is defined in `__init__.py`. The real config flow lives directly in the top-level `config_flow.py`. `services.yaml` keeps its legacy filename.
+
 
 **Keep files focused** — roughly 200–400 lines, one class per file for entities.
 
