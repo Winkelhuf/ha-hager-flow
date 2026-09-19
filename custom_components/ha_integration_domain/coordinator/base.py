@@ -5,8 +5,6 @@ from datetime import timedelta
 import logging
 
 from pymodbus.client import ModbusTcpClient
-from pymodbus.constants import Endian
-from pymodbus.payload import BinaryPayloadDecoder
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -28,7 +26,6 @@ class HagerFlowCoordinator(DataUpdateCoordinator):
             hass,
             _LOGGER,
             name=DOMAIN,
-            # Aktualisierungsintervall: 5 Sekunden
             update_interval=timedelta(seconds=5),
         )
 
@@ -42,20 +39,15 @@ class HagerFlowCoordinator(DataUpdateCoordinator):
                 _LOGGER.error("Fehler beim Lesen von Register %s (Slave %s)", address, slave)
                 return None
 
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                result.registers, 
-                byteorder=Endian.BIG, 
-                wordorder=Endian.BIG
-            )
-            
+            # Die neue, moderne Methode ab pymodbus 3.9+ nutzt die client-eigene Konvertierung
             if data_type == "int32":
-                return decoder.decode_32bit_int()
+                return self.client.convert_from_registers(result.registers, self.client.DATATYPE.INT32)
             if data_type == "uint32":
-                return decoder.decode_32bit_uint()
+                return self.client.convert_from_registers(result.registers, self.client.DATATYPE.UINT32)
             if data_type == "uint16":
-                return decoder.decode_16bit_uint()
+                return self.client.convert_from_registers(result.registers, self.client.DATATYPE.UINT16)
                 
-            return result.registers
+            return result.registers[0]
             
         except Exception as err:
             _LOGGER.error("Modbus-Fehler an Adresse %s: %s", address, err)
