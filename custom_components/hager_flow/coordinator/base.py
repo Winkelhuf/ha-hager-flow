@@ -20,7 +20,8 @@ class HagerFlowCoordinator(DataUpdateCoordinator):
         """Initialisierung des Coordinators."""
         self.host = host
         self.client = ModbusTcpClient(host=self.host, port=502)
-        self.discovered_meters: dict[int, str] = {} # Speichert {slave_id: "Zähler Name"}
+        self.discovered_meters: dict[int, str] = {}
+        self.discovered_wallboxes: dict[int, str] = {} # Speichert {slave_id: "Wallbox Name"}
         
         super().__init__(
             hass,
@@ -43,28 +44,41 @@ class HagerFlowCoordinator(DataUpdateCoordinator):
         except Exception:
             return None
 
-    def discover_meters(self) -> None:
-        """Scannt die Slaves 30 bis 37 ab. Akzeptiert NUR Geräte, die mit 'EC' beginnen."""
+    def discover_devices(self) -> None:
+        """Scannt Meter (30-37) streng über Namen und Wallboxen (1-7) streng über Register 4613 (Verbunden == 1) ab."""
         if not self.client.connected:
             self.client.connect()
         
-        _LOGGER.info("Starte strenges Auto-Discovery für Powermeter (Slaves 30-37)...")
+        # 1. Zähler scannen (Slaves 30-37) - Filter auf Name "EC"
+        _LOGGER.info("Starte Auto-Discovery für Powermeter (Slaves 30-37)...")
         for slave in range(30, 38):
-            # Namen auslesen (15 Register abfragen reicht für 'EC...')
             name = self._read_string_register(4098, 15, slave)
-            
-            # STRENGER FILTER: Nur wenn ein Name existiert und mit "EC" beginnt!
             if name and name.upper().startswith("EC"):
                 self.discovered_meters[slave] = name
-                _LOGGER.info("Hager Powermeter auf Slave %s erfolgreich erkannt: '%s'", slave, name)
-            else:
-                _LOGGER.debug("Slave %s hat kein gültiges EC-Gerät gemeldet. Wird ignoriert.", slave)
+                _LOGGER.info("Hager Powermeter auf Slave %s erkannt: '%s'", slave, name)
 
-    def _read_register_value(self, address: int, slave: int, data_type: str) -> int | float | None:
-        """Hilfsfunktion zum Auslesen eines Modbus-Registers."""
+        # 2. Wallboxen scannen (Slaves 1-7) - Filter auf Register 4613 (Verbunden) == 1
+        _LOGGER.info("Starte Auto-Discovery für Wallboxen (Slaves 1-7) über Register 4613...")
+        for slave in range(1, 8):
+            connected_check = self.client.read_holding_registers(4613, count=1, device_id=slave)
+            
+            if connected_check is not None and not connected_check.isError() and connected_check.registers[0] == 1:
+                # Name auslesen versuchen, ansonsten sprechenden Fallback-Namen nutzen
+                name = self._read_string_register(4099, 15, slave)
+                if not name or len(name) == 0:
+                    name = f"Witty Wallbox {slave}"
+                
+                self.discovered_wallboxes[slave] = name
+                _LOGGER.info("Hager Wallbox auf Slave %s erfolgreich erkannt: '%s'", slave, name)
+
+    def _read_register_value(self, address: int, slave: int, data_type: str, count: int = 1) -> any:
+        """Hilfsfunktion zum Auslesen eines Modbus-Registers (Zahlen und Strings)."""
         try:
-            count = 2 if data_type in ["int32", "uint32"] else 1
-            result = self.client.read_holding_registers(address, count=count, device_id=slave)
+            if data_type == "string":
+                return self._read_string_register(address, count, slave)
+
+            read_count = 2 if data_type in ["int32", "uint32"] else 1
+            result = self.client.read_holding_registers(address, count=read_count, device_id=slave)
             
             if result is None or result.isError():
                 return None
@@ -75,6 +89,8 @@ class HagerFlowCoordinator(DataUpdateCoordinator):
                 return self.client.convert_from_registers(result.registers, self.client.DATATYPE.UINT32)
             if data_type == "uint16":
                 return self.client.convert_from_registers(result.registers, self.client.DATATYPE.UINT16)
+            if data_type == "int16":
+                return self.client.convert_from_registers(result.registers, self.client.DATATYPE.INT16)
                 
             return result.registers
         except Exception:
@@ -85,11 +101,10 @@ class HagerFlowCoordinator(DataUpdateCoordinator):
         if not self.client.connected:
             await self.hass.async_add_executor_job(self.client.connect)
 
-        # Beim allerersten Durchlauf einmalig scannen
-        if not self.discovered_meters:
-            await self.hass.async_add_executor_job(self.discover_meters)
+        if not self.discovered_meters and not self.discovered_wallboxes:
+            await self.hass.async_add_executor_job(self.discover_devices)
 
-        from ..sensor.descriptions import ENTITY_DESCRIPTIONS, METER_SENSOR_TEMPLATES
+        from ..sensor.descriptions import ENTITY_DESCRIPTIONS, METER_SENSOR_TEMPLATES, WALLBOX_SENSOR_TEMPLATES
 
         data = {}
         
@@ -101,7 +116,7 @@ class HagerFlowCoordinator(DataUpdateCoordinator):
             if val is not None:
                 data[description.key] = val * description.scale
 
-        # 2. Nur die erkannten Zusatz-Zähler abfragen
+        # 2. Zusatz-Zähler abfragen (30-37)
         for slave, meter_name in self.discovered_meters.items():
             for template in METER_SENSOR_TEMPLATES:
                 key = f"meter_{slave}_{template['key_suffix']}"
@@ -109,6 +124,17 @@ class HagerFlowCoordinator(DataUpdateCoordinator):
                     self._read_register_value, template["addr"], slave, template["type"]
                 )
                 if val is not None:
-                    data[key] = val
+                    data[key] = val * template["scale"]
+
+        # 3. Wallboxen abfragen (1-7)
+        for slave, wb_name in self.discovered_wallboxes.items():
+            for template in WALLBOX_SENSOR_TEMPLATES:
+                key = f"wb_{slave}_{template['key_suffix']}"
+                cnt = template.get("count", 1)
+                val = await self.hass.async_add_executor_job(
+                    self._read_register_value, template["addr"], slave, template["type"], cnt
+                )
+                if val is not None:
+                    data[key] = val if template["type"] == "string" else val * template["scale"]
 
         return data
