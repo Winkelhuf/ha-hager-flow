@@ -1,5 +1,5 @@
 {
-  "domain": "ha_integration_domain",
+  "domain": "hager_flow",
   "name": "Integration Blueprint",
   "codeowners": [
     "@jpawlowski"
