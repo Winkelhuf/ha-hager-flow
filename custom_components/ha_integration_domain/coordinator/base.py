@@ -33,7 +33,7 @@ class HagerFlowCoordinator(DataUpdateCoordinator):
         """Hilfsfunktion zum Auslesen und Dekodieren eines Modbus-Registers."""
         try:
             count = 2 if data_type in ["int32", "uint32"] else 1
-            result = self.client.read_holding_registers(address, count, slave=slave)
+            result = self.client.read_holding_registers(address, count=count, device_id=slave)
             
             if result.isError():
                 _LOGGER.error("Fehler beim Lesen von Register %s (Slave %s)", address, slave)
