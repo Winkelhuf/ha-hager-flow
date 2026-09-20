@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from homeassistant.components.sensor import SensorEntityDescription, SensorStateClass, SensorDeviceClass
-from homeassistant.const import UnitOfPower, UnitOfElectricCurrent, PERCENTAGE
+from homeassistant.const import UnitOfPower, PERCENTAGE
 
 @dataclass(frozen=True, kw_only=True)
 class HagerFlowSensorEntityDescription(SensorEntityDescription):
@@ -14,7 +14,7 @@ class HagerFlowSensorEntityDescription(SensorEntityDescription):
     scale: float = 1.0
     string_count: int = 1  # Standardmäßig 1 Register (2 Bytes) für numerische Werte
 
-# 1. HAUPTSENSOREN (Immer vorhanden - Slave 0 & 1)
+# 1. HAUPTSENSOREN (Immer vorhanden - Slave 0)
 ENTITY_DESCRIPTIONS: tuple[HagerFlowSensorEntityDescription, ...] = (
     HagerFlowSensorEntityDescription(
         key="emc_seriennummer",
@@ -99,24 +99,13 @@ ENTITY_DESCRIPTIONS: tuple[HagerFlowSensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
     ),
     HagerFlowSensorEntityDescription(
-        key="main_leistung_gesamt",
-        name="EMC Main Leistung Gesamt",
+        key="hausanschluss_leistung",
+        name="Hausanschluss Leistung",
         register_address=4102,
         slave_id=0,
         data_type="int32",
         device_class=SensorDeviceClass.POWER,
         native_unit_of_measurement=UnitOfPower.WATT,
-        state_class=SensorStateClass.MEASUREMENT,
-    ),
-    HagerFlowSensorEntityDescription(
-        key="main_strom_l1",
-        name="EMC Main Strom L1",
-        register_address=4099,
-        slave_id=1,
-        data_type="uint16",
-        scale=0.0001,
-        device_class=SensorDeviceClass.CURRENT,
-        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
         state_class=SensorStateClass.MEASUREMENT,
     ),
 )
