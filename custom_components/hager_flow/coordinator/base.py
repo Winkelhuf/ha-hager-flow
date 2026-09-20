@@ -145,6 +145,13 @@ class HagerFlowCoordinator(DataUpdateCoordinator):
                 )
                 if val is not None:
                     data[key] = val if template["type"] == "string" else val * template["scale"]
+            
+            # ZUSÄTZLICH: Boostmodus (Register 4631, uint16) immer für den Schalter im Hintergrund mitlesen
+            boost_val = await self.hass.async_add_executor_job(
+                self._read_register_value, 4631, slave, "uint16"
+            )
+            if boost_val is not None:
+                data[f"wb_{slave}_boostmodus"] = boost_val
 
         # 4. SG Ready Einheiten abfragen (50-59)
         for slave, sg_name in self.discovered_sg_ready.items():
