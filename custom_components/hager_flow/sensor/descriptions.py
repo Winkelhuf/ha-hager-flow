@@ -18,7 +18,7 @@ class HagerFlowSensorEntityDescription(SensorEntityDescription):
 ENTITY_DESCRIPTIONS: tuple[HagerFlowSensorEntityDescription, ...] = (
     HagerFlowSensorEntityDescription(
         key="emc_seriennummer",
-        name="EMC Seriennummer",
+        name="Seriennummer",
         register_address=48,
         slave_id=0,
         data_type="string",
@@ -26,19 +26,29 @@ ENTITY_DESCRIPTIONS: tuple[HagerFlowSensorEntityDescription, ...] = (
     ),
     HagerFlowSensorEntityDescription(
         key="emc_firmware",
-        name="EMC Firmware",
+        name="Firmware",
         register_address=64,
         slave_id=0,
         data_type="string",
         string_count=16,
     ),
     HagerFlowSensorEntityDescription(
-        key="power_prioritaet",
-        name="Power Priorität",
+        key="power_prioritaet_ziel",
+        name="Ladepriorität",
         register_address=513,
         slave_id=0,
         data_type="uint16",
-        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.ENUM,
+        options=["Auto zuerst", "Batterie zuerst"],
+    ),
+    HagerFlowSensorEntityDescription(
+        key="power_prioritaet_entladung",
+        name="Batterieentladung ins Auto",
+        register_address=513,
+        slave_id=0,
+        data_type="uint16",
+        device_class=SensorDeviceClass.ENUM,
+        options=["Verboten", "Erlaubt"],
     ),
     HagerFlowSensorEntityDescription(
         key="battery_power",
@@ -49,54 +59,60 @@ ENTITY_DESCRIPTIONS: tuple[HagerFlowSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.POWER,
         native_unit_of_measurement=UnitOfPower.WATT,
         state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
     ),
     HagerFlowSensorEntityDescription(
         key="emc_autarkie_letzte_stunde",
-        name="EMC Autarkie letzte Stunde",
+        name="Autarkie letzte Stunde",
         register_address=4224,
         slave_id=0,
         data_type="uint16",
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
     ),
     HagerFlowSensorEntityDescription(
         key="emc_eigenverbrauch_letzte_stunde",
-        name="EMC Eigenverbrauch letzte Stunde",
+        name="Eigenverbrauch letzte Stunde",
         register_address=4225,
         slave_id=0,
         data_type="uint16",
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
     ),
     HagerFlowSensorEntityDescription(
         key="pv_leistung_gesamt",
-        name="EMC PV Leistung Gesamt",
+        name="PV Leistung Gesamt",
         register_address=4126,
         slave_id=0,
         data_type="uint32",
         device_class=SensorDeviceClass.POWER,
         native_unit_of_measurement=UnitOfPower.WATT,
         state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
     ),
     HagerFlowSensorEntityDescription(
         key="batterie_soc",
-        name="EMC Batterie SOC",
+        name="Batterie SOC",
         register_address=4146,
         slave_id=0,
         data_type="uint16",
         device_class=SensorDeviceClass.BATTERY,
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
     ),
     HagerFlowSensorEntityDescription(
         key="hausverbrauch_gesamt",
-        name="EMC Hausverbrauch Gesamt",
+        name="Hausverbrauch Gesamt",
         register_address=4151,
         slave_id=0,
         data_type="int32",
         device_class=SensorDeviceClass.POWER,
         native_unit_of_measurement=UnitOfPower.WATT,
         state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
     ),
     HagerFlowSensorEntityDescription(
         key="hausanschluss_leistung",
@@ -107,23 +123,33 @@ ENTITY_DESCRIPTIONS: tuple[HagerFlowSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.POWER,
         native_unit_of_measurement=UnitOfPower.WATT,
         state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
     ),
 )
 
 # 2. DYNAMISCHE METER-VORLAGEN (Slaves 30-37)
 METER_SENSOR_TEMPLATES: tuple[dict[str, any], ...] = (
-    {"key_suffix": "leistung", "name_suffix": "Leistung", "addr": 4153, "type": "int32", "scale": 1.0, "unit": UnitOfPower.WATT, "device_class": SensorDeviceClass.POWER},
-    {"key_suffix": "leistung_l1", "name_suffix": "Leistung L1", "addr": 4155, "type": "int32", "scale": 1.0, "unit": UnitOfPower.WATT, "device_class": SensorDeviceClass.POWER},
-    {"key_suffix": "leistung_l2", "name_suffix": "Leistung L2", "addr": 4157, "type": "int32", "scale": 1.0, "unit": UnitOfPower.WATT, "device_class": SensorDeviceClass.POWER},
-    {"key_suffix": "leistung_l3", "name_suffix": "Leistung L3", "addr": 4159, "type": "int32", "scale": 1.0, "unit": UnitOfPower.WATT, "device_class": SensorDeviceClass.POWER},
-    {"key_suffix": "energie_wh", "name_suffix": "Energie Wh", "addr": 4164, "type": "uint32", "scale": 1.0, "unit": "Wh", "device_class": SensorDeviceClass.ENERGY},
+    {"key_suffix": "leistung", "name_suffix": "Leistung", "addr": 4153, "type": "int32", "scale": 1.0, "unit": UnitOfPower.WATT, "device_class": SensorDeviceClass.POWER, "precision": 0},
+    {"key_suffix": "leistung_l1", "name_suffix": "Leistung L1", "addr": 4155, "type": "int32", "scale": 1.0, "unit": UnitOfPower.WATT, "device_class": SensorDeviceClass.POWER, "precision": 0},
+    {"key_suffix": "leistung_l2", "name_suffix": "Leistung L2", "addr": 4157, "type": "int32", "scale": 1.0, "unit": UnitOfPower.WATT, "device_class": SensorDeviceClass.POWER, "precision": 0},
+    {"key_suffix": "leistung_l3", "name_suffix": "Leistung L3", "addr": 4159, "type": "int32", "scale": 1.0, "unit": UnitOfPower.WATT, "device_class": SensorDeviceClass.POWER, "precision": 0},
+    {
+        "key_suffix": "meter_type", 
+        "name_suffix": "Typ", 
+        "addr": 4148, 
+        "type": "uint16", 
+        "scale": 1.0, 
+        "unit": None, 
+        "device_class": SensorDeviceClass.ENUM,
+        "options": ["Undefiniert", "Hauptzähler (Root)", "Zusatzerzeugung", "Zusatzverbraucher", "Zusatzverbraucher Heizung/Klima", "Farm", "Ungenutzt", "Wallbox", "Farm Erweitert"]
+    },
 )
 
 # 3. DYNAMISCHE WALLBOX-VORLAGEN (Slaves 1-7)
 WALLBOX_SENSOR_TEMPLATES: tuple[dict[str, any], ...] = (
     {"key_suffix": "firmware", "name_suffix": "Firmware", "addr": 4165, "type": "string", "count": 32, "scale": 1.0, "unit": None, "device_class": None},
     {"key_suffix": "ip_adresse", "name_suffix": "IP Adresse", "addr": 5385, "type": "string", "count": 8, "scale": 1.0, "unit": None, "device_class": None},
-    {"key_suffix": "solar_leistung", "name_suffix": "Witty Solar Leistung", "addr": 5125, "type": "int16", "scale": 1.0, "unit": UnitOfPower.WATT, "device_class": SensorDeviceClass.POWER},
+    {"key_suffix": "solar_leistung", "name_suffix": "Witty Solar Leistung", "addr": 5125, "type": "int16", "scale": 1.0, "unit": UnitOfPower.WATT, "device_class": SensorDeviceClass.POWER, "precision": 0},
     {"key_suffix": "gesamtenergie_geladen", "name_suffix": "Gesamtenergie geladen", "addr": 4609, "type": "uint32", "scale": 0.001, "unit": "kWh", "device_class": SensorDeviceClass.ENERGY},
     {"key_suffix": "solarenergie_geladen", "name_suffix": "Solarenergie geladen", "addr": 4611, "type": "uint32", "scale": 0.001, "unit": "kWh", "device_class": SensorDeviceClass.ENERGY},
     {"key_suffix": "verbunden", "name_suffix": "Verbunden", "addr": 4613, "type": "uint16", "scale": 1.0, "unit": None, "device_class": None},
@@ -137,7 +163,14 @@ WALLBOX_SENSOR_TEMPLATES: tuple[dict[str, any], ...] = (
 
 # 4. DYNAMISCHE SG-READY-VORLAGEN (Slaves 50-59)
 SG_READY_SENSOR_TEMPLATES: tuple[dict[str, any], ...] = (
-    {"key_suffix": "sg_ready_name", "name_suffix": "SG Ready Name", "addr": 4098, "type": "string", "count": 50, "scale": 1.0, "unit": None, "device_class": None},
-    {"key_suffix": "sg_ready_working", "name_suffix": "SG Ready Working", "addr": 4151, "type": "int16", "scale": 1.0, "unit": None, "device_class": None},
-    {"key_suffix": "sg_ready_status", "name_suffix": "SG Ready Status", "addr": 4152, "type": "int32", "scale": 1.0, "unit": None, "device_class": None},
+    {
+        "key_suffix": "sg_ready_status", 
+        "name_suffix": "SG Ready Status", 
+        "addr": 4152, 
+        "type": "int32", 
+        "scale": 1.0, 
+        "unit": None, 
+        "device_class": SensorDeviceClass.ENUM,
+        "options": ["Blockiert", "Normalbetrieb", "Anlaufempfehlung", "Anlaufbefehl"]
+    },
 )
