@@ -35,6 +35,7 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
                     device_class=template.get("device_class"),
                     native_unit_of_measurement=template["unit"],
                     state_class=SensorStateClass.MEASUREMENT,
+                    suggested_display_precision=template.get("precision"),
                 )
                 entities.append(IntegrationBlueprintSensor(coordinator, dynamic_desc, entry.entry_id))
 
@@ -53,6 +54,7 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
                     device_class=template.get("device_class"),
                     native_unit_of_measurement=template["unit"],
                     state_class=s_class,
+                    suggested_display_precision=template.get("precision"),
                 )
                 entities.append(IntegrationBlueprintSensor(coordinator, dynamic_desc, entry.entry_id))
 
