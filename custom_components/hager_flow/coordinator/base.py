@@ -22,6 +22,7 @@ class HagerFlowCoordinator(DataUpdateCoordinator):
         self.client = ModbusTcpClient(host=self.host, port=502)
         self.discovered_meters: dict[int, str] = {}
         self.discovered_wallboxes: dict[int, str] = {} # Speichert {slave_id: "Wallbox Name"}
+        self.discovered_sg_ready: dict[int, str] = {}  # Speichert {slave_id: "SG Ready Name"}
         
         super().__init__(
             hass,
@@ -45,7 +46,7 @@ class HagerFlowCoordinator(DataUpdateCoordinator):
             return None
 
     def discover_devices(self) -> None:
-        """Scannt Meter (30-37) streng über Namen und Wallboxen (1-7) streng über Register 4613 (Verbunden == 1) ab."""
+        """Scannt Meter (30-37), Wallboxen (1-7) und SG Ready Einheiten (50-59) ab."""
         if not self.client.connected:
             self.client.connect()
         
@@ -63,13 +64,20 @@ class HagerFlowCoordinator(DataUpdateCoordinator):
             connected_check = self.client.read_holding_registers(4613, count=1, device_id=slave)
             
             if connected_check is not None and not connected_check.isError() and connected_check.registers[0] == 1:
-                # Name auslesen versuchen, ansonsten sprechenden Fallback-Namen nutzen
                 name = self._read_string_register(4099, 15, slave)
                 if not name or len(name) == 0:
                     name = f"Witty Wallbox {slave}"
                 
                 self.discovered_wallboxes[slave] = name
                 _LOGGER.info("Hager Wallbox auf Slave %s erfolgreich erkannt: '%s'", slave, name)
+
+        # 3. SG Ready scannen (Slaves 50-59) - Filter auf Name im Register 4098
+        _LOGGER.info("Starte Auto-Discovery für SG Ready Einheiten (Slaves 50-59)...")
+        for slave in range(50, 60):
+            name = self._read_string_register(4098, 15, slave)
+            if name and len(name) > 0:
+                self.discovered_sg_ready[slave] = name
+                _LOGGER.info("Hager SG Ready auf Slave %s erfolgreich erkannt: '%s'", slave, name)
 
     def _read_register_value(self, address: int, slave: int, data_type: str, count: int = 1) -> any:
         """Hilfsfunktion zum Auslesen eines Modbus-Registers (Zahlen und Strings)."""
@@ -101,20 +109,21 @@ class HagerFlowCoordinator(DataUpdateCoordinator):
         if not self.client.connected:
             await self.hass.async_add_executor_job(self.client.connect)
 
-        if not self.discovered_meters and not self.discovered_wallboxes:
+        if not self.discovered_meters and not self.discovered_wallboxes and not self.discovered_sg_ready:
             await self.hass.async_add_executor_job(self.discover_devices)
 
-        from ..sensor.descriptions import ENTITY_DESCRIPTIONS, METER_SENSOR_TEMPLATES, WALLBOX_SENSOR_TEMPLATES
+        from ..sensor.descriptions import ENTITY_DESCRIPTIONS, METER_SENSOR_TEMPLATES, WALLBOX_SENSOR_TEMPLATES, SG_READY_SENSOR_TEMPLATES
 
         data = {}
         
         # 1. Statische Hauptsensoren lesen
         for description in ENTITY_DESCRIPTIONS:
+            cnt = description.string_count
             val = await self.hass.async_add_executor_job(
-                self._read_register_value, description.register_address, description.slave_id, description.data_type
+                self._read_register_value, description.register_address, description.slave_id, description.data_type, cnt
             )
             if val is not None:
-                data[description.key] = val * description.scale
+                data[description.key] = val if description.data_type == "string" else val * description.scale
 
         # 2. Zusatz-Zähler abfragen (30-37)
         for slave, meter_name in self.discovered_meters.items():
@@ -130,6 +139,17 @@ class HagerFlowCoordinator(DataUpdateCoordinator):
         for slave, wb_name in self.discovered_wallboxes.items():
             for template in WALLBOX_SENSOR_TEMPLATES:
                 key = f"wb_{slave}_{template['key_suffix']}"
+                cnt = template.get("count", 1)
+                val = await self.hass.async_add_executor_job(
+                    self._read_register_value, template["addr"], slave, template["type"], cnt
+                )
+                if val is not None:
+                    data[key] = val if template["type"] == "string" else val * template["scale"]
+
+        # 4. SG Ready Einheiten abfragen (50-59)
+        for slave, sg_name in self.discovered_sg_ready.items():
+            for template in SG_READY_SENSOR_TEMPLATES:
+                key = f"sg_{slave}_{template['key_suffix']}"
                 cnt = template.get("count", 1)
                 val = await self.hass.async_add_executor_job(
                     self._read_register_value, template["addr"], slave, template["type"], cnt
