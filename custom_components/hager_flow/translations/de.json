@@ -2,7 +2,9 @@
   "config": {
     "step": {
       "user": {
-        "data": { "host": "IP-Adresse (z.B. 192.168.70.30)" },
+        "data": {
+          "host": "IP-Adresse (z.B. 192.168.70.30)"
+        },
         "description": "Bitte gib die IP-Adresse deines Hager flow Systems ein."
       }
     }
@@ -10,58 +12,6 @@
   "exceptions": {
     "boostcooldown": {
       "message": "Die Wallbox verarbeitet noch den letzten Befehl. Bitte warte noch {seconds} Sekunden auf die Cloud-Synchronisation."
-    }
-  },
-  "entity": {
-    "sensor": {
-      "emcseriennummer": { "name": "EMC Seriennummer" },
-      "emcfirmware": { "name": "EMC Firmware" },
-      "powerprioritaet": { "name": "Power Priorität" },
-      "batterypower": { "name": "Battery Power" },
-      "emcautarkieletztestunde": { "name": "EMC Autarkie letzte Stunde" },
-      "emceigenverbrauchletztestunde": { "name": "EMC Eigenverbrauch letzte Stunde" },
-      "pvleistunggesamt": { "name": "EMC PV Leistung Gesamt" },
-      "batteriesoc": { "name": "EMC Batterie SOC" },
-      "hausverbrauchgesamt": { "name": "EMC Hausverbrauch Gesamt" },
-      "hausanschlussleistung": { "name": "Hausanschluss Leistung" },
-      "powerprioritaetziel": { 
-        "name": "Ladepriorität",
-        "state": { "carfirst": "Auto zuerst", "batteryfirst": "Batterie zuerst" }
-      },
-      "powerprioritaetentladung": { 
-        "name": "Batterieentladung ins Auto",
-        "state": { "forbidden": "Verboten", "allowed": "Erlaubt" }
-      },
-      "meterleistung": { "name": "Leistung" },
-      "meterleistungl1": { "name": "Leistung L1" },
-      "meterleistungl2": { "name": "Leistung L2" },
-      "meterleistungl3": { "name": "Leistung L3" },
-      "metermetertype": { 
-        "name": "Typ",
-        "state": {
-          "undefined": "Undefiniert", "rootmeter": "Hauptzähler (Root)", "additionalconsumer": "Zusatzverbraucher", 
-          "additionalgeneration": "Zusatzerzeugung", "additionalconsumerextended": "Zusatzverbraucher (Erweitert)", 
-          "farm": "Farm", "unused": "Ungenutzt", "wallbox": "Wallbox", "farmextended": "Farm Erweitert"
-        }
-      },
-      "wbfirmware": { "name": "Firmware" },
-      "wbipadresse": { "name": "IP-Adresse" },
-      "wbsolarleistung": { "name": "Witty Solar Leistung" },
-      "wbgesamtenergiegeladen": { "name": "Gesamtenergie geladen" },
-      "wbsolarenergiegeladen": { "name": "Solarenergie geladen" },
-      "wbverbunden": { "name": "Verbunden" },
-      "wbladesessionbadge": { "name": "Ladesession Badge" },
-      "wbladunggesamtsession": { "name": "Ladung Gesamt aktuelle Session" },
-      "wbladungnetzsession": { "name": "Ladung Netz aktuelle Session" },
-      "wbladungpvsession": { "name": "Ladung PV aktuelle Session" },
-      "wbladesessionrfid": { "name": "Ladesession RFID Karte" },
-      "sgreadystatus": { 
-        "name": "SG Ready Status",
-        "state": { "blocked": "Blockiert", "normaloperation": "Normalbetrieb", "recommendation": "Anlaufempfehlung", "forcego": "Anlaufbefehl" }
-      }
-    },
-    "switch": {
-      "wbboostmodus": { "name": "Boostmodus" }
     }
   }
 }
