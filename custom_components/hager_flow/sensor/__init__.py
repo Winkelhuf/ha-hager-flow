@@ -2,7 +2,13 @@
 from typing import TYPE_CHECKING
 from homeassistant.components.sensor import SensorStateClass
 
-from .descriptions import ENTITY_DESCRIPTIONS, METER_SENSOR_TEMPLATES, WALLBOX_SENSOR_TEMPLATES, HagerFlowSensorEntityDescription
+from .descriptions import (
+    ENTITY_DESCRIPTIONS, 
+    METER_SENSOR_TEMPLATES, 
+    WALLBOX_SENSOR_TEMPLATES, 
+    SG_READY_SENSOR_TEMPLATES,
+    HagerFlowSensorEntityDescription
+)
 from .entity import IntegrationBlueprintSensor
 
 PARALLEL_UPDATES = 0
@@ -43,6 +49,24 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
                     register_address=template["addr"],
                     slave_id=slave,
                     data_type=template["type"],
+                    native_unit_of_measurement=template["unit"],
+                    state_class=s_class,
+                )
+                entities.append(IntegrationBlueprintSensor(coordinator, dynamic_desc, entry.entry_id))
+
+    # 4. Dynamisch Sensoren für erkannte SG Ready Einheiten hinzufügen (50-59)
+    if coordinator.discovered_sg_ready:
+        for slave, sg_name in coordinator.discovered_sg_ready.items():
+            for template in SG_READY_SENSOR_TEMPLATES:
+                s_class = None if template["type"] == "string" else SensorStateClass.MEASUREMENT
+                
+                dynamic_desc = HagerFlowSensorEntityDescription(
+                    key=f"sg_{slave}_{template['key_suffix']}",
+                    name=f"{sg_name} {template['name_suffix']}",
+                    register_address=template["addr"],
+                    slave_id=slave,
+                    data_type=template["type"],
+                    string_count=template.get("count", 1),
                     native_unit_of_measurement=template["unit"],
                     state_class=s_class,
                 )
