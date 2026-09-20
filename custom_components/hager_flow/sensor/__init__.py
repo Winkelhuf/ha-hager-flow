@@ -32,6 +32,7 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
                     register_address=template["addr"],
                     slave_id=slave,
                     data_type=template["type"],
+                    device_class=template.get("device_class"),
                     native_unit_of_measurement=template["unit"],
                     state_class=SensorStateClass.MEASUREMENT,
                 )
@@ -49,6 +50,7 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
                     register_address=template["addr"],
                     slave_id=slave,
                     data_type=template["type"],
+                    device_class=template.get("device_class"),
                     native_unit_of_measurement=template["unit"],
                     state_class=s_class,
                 )
@@ -67,6 +69,7 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
                     slave_id=slave,
                     data_type=template["type"],
                     string_count=template.get("count", 1),
+                    device_class=template.get("device_class"),
                     native_unit_of_measurement=template["unit"],
                     state_class=s_class,
                 )
