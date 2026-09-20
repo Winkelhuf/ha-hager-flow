@@ -153,7 +153,6 @@ WALLBOX_SENSOR_TEMPLATES: tuple[dict[str, any], ...] = (
     {"key_suffix": "gesamtenergie_geladen", "name_suffix": "Gesamtenergie geladen", "addr": 4609, "type": "uint32", "scale": 0.001, "unit": "kWh", "device_class": SensorDeviceClass.ENERGY},
     {"key_suffix": "solarenergie_geladen", "name_suffix": "Solarenergie geladen", "addr": 4611, "type": "uint32", "scale": 0.001, "unit": "kWh", "device_class": SensorDeviceClass.ENERGY},
     {"key_suffix": "verbunden", "name_suffix": "Verbunden", "addr": 4613, "type": "uint16", "scale": 1.0, "unit": None, "device_class": None},
-    {"key_suffix": "boostmodus", "name_suffix": "Boostmodus", "addr": 4631, "type": "uint16", "scale": 1.0, "unit": None, "device_class": None},
     {"key_suffix": "ladesession_badge", "name_suffix": "Ladesession Badge", "addr": 4929, "type": "string", "count": 16, "scale": 1.0, "unit": None, "device_class": None},
     {"key_suffix": "ladung_gesamt_session", "name_suffix": "Ladung Gesamt aktuelle Session", "addr": 4950, "type": "uint32", "scale": 0.001, "unit": "kWh", "device_class": SensorDeviceClass.ENERGY},
     {"key_suffix": "ladung_netz_session", "name_suffix": "Ladung Netz aktuelle Session", "addr": 4952, "type": "uint32", "scale": 0.001, "unit": "kWh", "device_class": SensorDeviceClass.ENERGY},
