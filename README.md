@@ -3,14 +3,17 @@
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2026.8%2B-blue.svg)](https://www.home-assistant.io/)
 [![Python](https://shields.io)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+<br>
+🌐 **Supported System Languages:** `English` | `Deutsch` | `Français` | `Nederlands`
 
-A modern, highly optimized Home Assistant custom integration to monitor and control your **Hager flow Energy Management System (EMS / EMC R3)** locally over Modbus TCP. It features a strict **Auto-Discovery engine** that automatically maps and dynamically names connected hardware while filtering out offline devices to keep your entities clean.
+A modern, highly optimized Home Assistant custom integration to monitor and control your **Hager flow Energy Management System (EMS / EMC)** locally over Modbus TCP. It features a strict **Auto-Discovery engine** that automatically maps and dynamically names connected hardware while filtering out offline devices to keep your entities clean.
 
 ---
 
 ## 📋 Features
 
 - ⚡ **100% Local Control:** Connects directly via Modbus TCP (Port 502) to your system without relying on cloud APIs.
+- 🌍 **Native Multilingual Support:** Automatically adapts to your Home Assistant system language. Fully translated into **English**, **Deutsch**, **Français**, and **Nederlands** for all entity names, states, and configuration dialogs.
 - 📦 **Multi-Hub Support:** Add multiple Hager flow devices with different IP addresses simultaneously without entity conflicts.
 - 🧠 **Smart Auto-Discovery (Powermeters):** Scans Slave IDs 30–37 on startup. Dynamically creates entities *only* if a valid text name starting with `EC` (Energy Control) is broadcasted, natively using the device's real name.
 - 🚗 **Smart Auto-Discovery (Witty Wallboxes):** Scans Slave IDs 1–7. Dynamically creates diagnostic, energy sensors, and control switches *only* if the connection register (`4613`) confirms active presence (`== 1`).
