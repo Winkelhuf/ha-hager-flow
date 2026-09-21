@@ -67,7 +67,17 @@ To prevent rapid toggle-looping (where the switch jumps back and forth while wai
 
 ## 🚀 Installation
 
-### Option 1: Manual Installation (Private Testing)
+### Option 1: Via HACS (recommended)
+
+Since ??? 2026 Hager Flow Modbus has been integrated into the default store of HACS.
+
+One-Click Installation: <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=Winkelhuf&repository=ha-hager-flow"><img src="https://my.home-assistant.io/badges/hacs_repository.svg" alt="Open in HACS" /></a>
+
+1. In Home Assistant open **HACS → Integrations**.
+2. Search for **E3DC RSCP Connect**
+3. Install **E3DC RSCP connect** and restart Home Assistant.
+
+### Option 2: Manual Installation (Private Testing)
 1. Download the latest release or clone the repository.
 2. Copy the inner `hager_flow` folder from `custom_components/` into your Home Assistant's local `config/custom_components/` directory.
 3. Your path should look like this: `/config/custom_components/hager_flow/`
