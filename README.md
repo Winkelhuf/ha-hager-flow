@@ -56,7 +56,7 @@ A modern, highly optimized Home Assistant custom integration to monitor and cont
 
 When toggling the **Witty Boost Mode Switch**, the underlying Modbus backend writes directly to register `4631`. However, Hager's internal state machine processing and cloud synchronization logic cause a **significant feedback delay** (up to 20 seconds) before the register reflects the updated value.
 
-To prevent rapid toggle-looping (where the switch jumps back and forth while waiting for the cloud) and to eliminate UI accidental double-clicks, this integration implements a **30-second Clouzd-Latency Cooldown Filter**:
+To prevent rapid toggle-looping (where the switch jumps back and forth while waiting for the cloud) and to eliminate UI accidental double-clicks, this integration implements a **30-second Cloud-Latency Cooldown Filter**:
 
 1. **Immediate Reaction:** Toggling the switch flips the UI immediately to your desired target state.
 2. **UI Lockout:** The switch instantly turns grey (**Disabled**) for **exactly 30 seconds**.
