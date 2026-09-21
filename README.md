@@ -100,12 +100,13 @@ This integration utilizes the modern async **DataUpdateCoordinator** design patt
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 
+
+
 ## Built with AI
 
-This blueprint was developed with significant assistance from AI coding assistants (GitHub Copilot, Claude). We believe that community integrations may benefit from extensive AI assistance when their actual review, testing, limitations, and maturity are communicated honestly. See our [`AI_POLICY.md`](AI_POLICY.md) for the distinction between community custom integrations and contributions to Home Assistant Core.
+This repository was developed with significant assistance from AI coding assistants (Gemini, Claude). We believe that community integrations may benefit from extensive AI assistance when their actual review, testing, limitations, and maturity are communicated honestly. These safeguards improve verifiability but do not guarantee correctness.
 
-The comprehensive AI agent instructions included in this repository ([`AGENTS.md`](AGENTS.md), `.agents/instructions/`) help humans and agents produce inspectable code using Home Assistant Core patterns and automated quality checks. These safeguards improve verifiability but do not guarantee correctness.
 
----
+## Disclaimer
 
-**Happy coding! 🎉** If you build something cool with this blueprint, let us know!
+This integration is not affiliated with or endorsed by Hager. "hager" and "flow" are trademarks of their respective owners. Use at your own risk.
