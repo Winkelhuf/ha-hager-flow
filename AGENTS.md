@@ -2,9 +2,9 @@
 
 This repository contains the Home Assistant custom integration `hager_flow` for Hager flow Modbus systems.
 
-This is not a template repository and not a blueprint. It is a real custom integration intended for Home Assistant and HACS publication.
+This is a real custom integration project intended for Home Assistant and HACS publication. It is not a template or starter blueprint.
 
-The goal of this file is to provide project-specific context for AI coding agents working in this repository so that changes stay consistent with the integration architecture and Home Assistant conventions.
+The purpose of this file is to keep development consistent with Home Assistant custom integration standards, reduce avoidable mistakes, and support maintainable publishing.
 
 ## Project identity
 
@@ -13,173 +13,126 @@ The goal of this file is to provide project-specific context for AI coding agent
 - Class prefix: `HagerFlow`
 - Repository: `Winkelhuf/ha-hager-flow`
 
-## Project overview
+## Product scope
 
-This integration connects to a local Hager flow Energy Management System over Modbus TCP and exposes relevant devices, values, and controls in Home Assistant.
+This integration connects to a local Hager flow Energy Management System over Modbus TCP and exposes the relevant device data and controls in Home Assistant.
 
-It supports local discovery and monitoring of components such as:
+The integration may include:
 
-- the main EMC system
-- power meters
-- Witty wallboxes
-- SG Ready devices
-- battery, PV, and grid-related values
-
-The implementation follows standard Home Assistant custom integration patterns and uses the coordinator model for data flow.
+- main system monitoring
+- power meter entities
+- Witty wallbox entities
+- SG Ready status and data
+- supporting diagnostics and configuration
 
 ## Repository structure
 
-Key directories and files:
+Important repository parts:
 
 - `custom_components/hager_flow/` — integration source code
-- `config/` — local Home Assistant configuration used for testing
+- `config/` — local Home Assistant config for development/testing
 - `tests/` — automated tests
-- `.github/` — GitHub configuration, issue templates, and workflows
-- `README.md` — user-facing project documentation
-- `hacs.json` — HACS metadata for publication
-- `manifest.json` — Home Assistant integration manifest
-- `LICENSE` — project license
+- `.github/` — GitHub workflows and issue templates
+- `README.md` — user documentation and installation steps
+- `hacs.json` — HACS metadata
+- `manifest.json` — Home Assistant integration metadata
+- `LICENSE` — repository license
 
-## Architecture and file rules
+## Required architecture
 
-Keep the Home Assistant integration structure consistent with the project conventions.
+Keep the integration aligned with Home Assistant custom integration patterns.
 
-### Package organization
+### Core rules
 
-Use this structure when adding or modifying code:
+- Entities should read from the coordinator, not directly from the device API.
+- Device logic should be separated from entity/UI presentation.
+- Config flow logic belongs in the config flow layer.
+- Service actions should be registered in `async_setup()`.
+- Use async I/O and clear type hints.
+- Keep files small and focused.
+- Avoid unnecessary abstraction layers.
 
-- `api/` — API client and exceptions when needed
-- `coordinator/` — update coordinator logic
-- `config_flow_handler/` — config flow, options, validators, schemas
-- `entity/` — base entity classes and helpers
-- `entity_utils/` — entity helper logic
-- `<platform>/` — platform modules such as sensor or switch
-- `service_actions/` — service action implementations
-- `utils/` — integration-wide utilities
+### Package layout
 
-Top-level modules are limited to the standard integration entry points, such as:
+Use the project structure consistently:
 
-- `config_flow.py`
-- `diagnostics.py`
-- `repairs.py`
-- `trigger.py` / `condition.py` when applicable
+- `api/` — API client and exceptions
+- `coordinator/` — data coordinator logic
+- `config_flow_handler/` — config flow, options and validators
+- `entity/` — base entity classes
+- `entity_utils/` — helper logic for entities
+- `<platform>/` — sensor, switch, etc.
+- `service_actions/` — service actions
+- `utils/` — cross-cutting utilities
 
-Do not create new top-level packages like `common/`, `shared/`, `lib/`, or `helpers/` without a clear reason. Prefer `utils/` or `entity_utils/` instead.
-
-### Design constraints
-
-- Entities read from the coordinator, not directly from device APIs.
-- Register service actions in `async_setup()`, not `async_setup_entry()`.
-- Keep files focused and reasonably small.
-- Prefer clear separation between:
-  - device/data access
-  - coordination
-  - entity representation
-  - config flow and options
-- Use type hints and async I/O consistently.
-- Follow standard Home Assistant custom integration patterns.
-- Avoid unnecessary custom abstractions that do not add value.
+Do not add new top-level packages such as `common/`, `shared/`, `lib/`, or `helpers/` unless there is a clear need.
 
 ## Coding standards
 
-### Python
+- Python 4 spaces, double quotes, 120 column limit
+- type hints required
+- async for I/O operations
+- stable unique IDs for entities and devices
+- translation keys and entity descriptions preferred over hardcoded names
+- avoid template or placeholder leftovers in the codebase
+- keep comments minimal and only for meaningful exceptions or workarounds
 
-- 4-space indentation
-- line length: 120
-- double quotes
-- full type hints
-- async usage for I/O operations
-- prefer explicit readability over cleverness
+## Validation before publishing
 
-### Home Assistant conventions
+Before publishing or merging a change:
 
-- `coordinator.data` is the source for entities
-- maintain stable unique IDs
-- keep translation keys and `EntityDescription` metadata explicit
-- avoid hardcoded display names where the architecture expects translation keys and descriptions
-- do not add new device-automation files unless there is a strong, explicit need
-- keep user-visible naming consistent with the integration’s supported devices and local Modbus model
+- run the repository validation tooling that exists in the repo
+- ensure HACS metadata is valid
+- ensure `manifest.json` is valid
+- verify README installation instructions still match actual behavior
+- run relevant tests for changed behavior
+- keep the repo in a maintainable, clean state
 
-### Comments and documentation
-
-- comments should be rare and only used for non-obvious constraints, workarounds, or issue references
-- larger explanations belong in `docs/development/` or in a docstring, not in inline comments
-- keep repository docs focused on this project’s actual behavior, not on template boilerplate
-
-## Validation and workflow
-
-Use the project’s standard validation workflows and tools rather than creating ad-hoc checks.
-
-The repository currently relies on GitHub Actions for automated validation, especially:
+The repository currently uses GitHub Actions-based validation in:
 
 - `.github/workflows/lint.yml`
 - `.github/workflows/validate.yml`
 
-These cover linting, Home Assistant validation, and HACS validation.
+Do not rely on missing helper scripts or template-only tooling. Only use commands and scripts that are actually present in the repository.
 
-When local validation is needed, use the repository’s actual available tooling and keep command usage consistent with the project environment. Do not assume convenience scripts exist unless they are present in the repository root.
+## Development workflow
 
-## Local development and testing
+Use the repository’s actual tooling and Home Assistant testing setup, not blueprint-era helper scripts.
 
-The project is intended to be developed in a Home Assistant-aware local environment.
+Keep this in mind:
 
-Use the repo’s real configuration and validation setup when available. For local testing:
+- use the local config directory for testing
+- validate integration behavior with Home Assistant-aware tooling
+- avoid reading runtime state from `.storage` unless it is a deliberate debug step and the result is understood
+- keep testing and validation reproducible
 
-- keep a clean Home Assistant test configuration under `config/`
-- test changes against the real integration structure
-- use the repo’s actual local tooling if present
-- avoid reading runtime state directly from `.storage` unless explicitly required for debugging and it is understood to be stale
+## Publishing requirements
 
-Do not assume live runtime data can be read directly from storage files. Use the Home Assistant project runtime and the repository tooling instead.
+Before publishing to HACS or making the repo public:
 
-## Release and publication
-
-This repository is intended for publication as a Home Assistant custom integration via HACS.
-
-Keep these project files maintained and accurate:
-
-- `README.md` — installation, configuration, features, limitations
-- `hacs.json` — HACS metadata
-- `manifest.json` — Home Assistant integration metadata
-- `LICENSE` — legal license information
-- `.github/workflows/*.yml` — CI validation and release automation
-
-When making changes that affect users, pay attention to:
-
-- config flow behavior
-- entity IDs and unique IDs
-- state values and units
-- service call signatures
-- compatibility of installation and setup
-
-If a change will affect existing users, document the risk clearly and prefer a migration path where appropriate.
-
-## GitHub and project hygiene
-
-- Keep `README.md` accurate and project-specific
-- Keep issue templates, contributing docs, and workflows up to date
-- Remove stale template or placeholder content if it remains
-- Keep the repository organized so it remains understandable, maintainable, and publishable
-- Prefer clean, minimal repository state over leftovers from scaffold or starter templates
+- check `hacs.json`
+- check `manifest.json`
+- confirm the README accurately describes installation and setup
+- ensure all user-facing strings and config flows are correct
+- ensure the project is understandable to a future maintainer
+- remove stale template or bootstrap content
+- keep brand assets, metadata, and documentation current
 
 ## Contribution expectations
 
-- Prefer focused changes that address one clear issue or feature
-- Add tests for behavioral changes where meaningful
-- Validate with the repository’s actual tools before considering work complete
-- Avoid unrelated refactors or broad cleanup in the same change
-- When editing integration behavior, think in terms of Home Assistant runtime assumptions and user-visible impact
+- Small, focused changes are preferred
+- Add tests for behavior changes when practical
+- Avoid unrelated refactors in the same patch
+- Respect Home Assistant conventions
+- Prefer compatibility and clarity over cleverness
+- Keep the integration publishable and maintainable
 
-## Quick checklist before finishing work
+## Quick checklist
 
-Before considering a task complete:
+Before finishing a task, confirm:
 
-- Does the code fit the project structure?
-- Are Home Assistant patterns followed?
-- Are the relevant validation workflows or local tools run?
-- Is the README or docs still accurate?
-- Are there any leftover blueprint/template artifacts?
-- Does the change remain compatible with HACS publication?
-- Is the repo still clean and understandable for future maintenance?
-
-This repository is a real custom integration project, and all work should be aligned with that goal.
+- the code fits the project structure
+- Home Assistant patterns are followed
+- validation was run with the repo’s real tooling
+- the README still
+
