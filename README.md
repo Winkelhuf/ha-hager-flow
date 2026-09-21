@@ -74,8 +74,8 @@ Since ??? 2026 Hager Flow Modbus has been integrated into the default store of H
 One-Click Installation: <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=Winkelhuf&repository=ha-hager-flow"><img src="https://my.home-assistant.io/badges/hacs_repository.svg" alt="Open in HACS" /></a>
 
 1. In Home Assistant open **HACS → Integrations**.
-2. Search for **E3DC RSCP Connect**
-3. Install **E3DC RSCP connect** and restart Home Assistant.
+2. Search for **Hager flow Modbus**
+3. Install **Hager flow Modbus** and restart Home Assistant.
 
 ### Option 2: Manual Installation (Private Testing)
 1. Download the latest release or clone the repository.
@@ -89,8 +89,8 @@ One-Click Installation: <a href="https://my.home-assistant.io/redirect/hacs_repo
 
 1. In Home Assistant, navigate to **Settings** > **Devices & Services**.
 2. Click the **+ Add Integration** button in the bottom right corner.
-3. Search for **"Hager flow"** and select it.
-4. Enter the **IP Address** of your local Hager flow system (Default fallback preset: `192.168.70.30`).
+3. Search for **"Hager flow Modbus"** and select it.
+4. Enter the **IP Address** of your local Hager flow system (XEM470) (Default fallback preset: `192.168.70.30`).
 5. Click **Submit**. The integration will automatically fire up the discovery engine and populate your dashboard with all your active local hardware grouped cleanly into distinct devices with beautiful integrated brand logos!
 
 > [!TIP]
