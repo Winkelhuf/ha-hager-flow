@@ -1,0 +1,139 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "host": "Adresse IP (p. ex. 192.168.70.30)"
+        },
+        "description": "Veuillez saisir l'adresse IP de votre système Hager flow."
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "emc_seriennummer": {
+        "name": "Numéro de série"
+      },
+      "emc_firmware": {
+        "name": "Firmware"
+      },
+      "power_prioritaet_ziel": {
+        "name": "Priorité de charge",
+        "state": {
+          "car_first": "Voiture d'abord",
+          "battery_first": "Batterie d'abord"
+        }
+      },
+      "power_prioritaet_entladung": {
+        "name": "Décharge de la batterie vers la voiture",
+        "state": {
+          "forbidden": "Interdite",
+          "allowed": "Autorisée"
+        }
+      },
+      "battery_power": {
+        "name": "Puissance de la batterie"
+      },
+      "emc_autarkie_letzte_stunde": {
+        "name": "Autarcie dernière heure"
+      },
+      "emc_eigenverbrauch_letzte_stunde": {
+        "name": "Autoconsommation dernière heure"
+      },
+      "pv_leistung_gesamt": {
+        "name": "Puissance PV totale"
+      },
+      "batterie_soc": {
+        "name": "État de charge de la batterie"
+      },
+      "hausverbrauch_gesamt": {
+        "name": "Consommation totale de la maison"
+      },
+      "hausanschluss_leistung": {
+        "name": "Puissance réseau"
+      },
+      "leistung": {
+        "name": "Puissance"
+      },
+      "leistung_l1": {
+        "name": "Puissance L1"
+      },
+      "leistung_l2": {
+        "name": "Puissance L2"
+      },
+      "leistung_l3": {
+        "name": "Puissance L3"
+      },
+      "meter_type": {
+        "name": "Type",
+        "state": {
+          "undefined": "Non défini",
+          "root": "Compteur principal (Root)",
+          "additional_generation": "Production supplémentaire",
+          "additional_consumer": "Consommateur supplémentaire",
+          "additional_consumer_heating_cooling": "Consommateur supplémentaire chauffage/climatisation",
+          "farm": "Farm",
+          "unused": "Inutilisé",
+          "wallbox": "Wallbox",
+          "farm_extended": "Farm étendu"
+        }
+      },
+      "firmware": {
+        "name": "Firmware"
+      },
+      "ip_adresse": {
+        "name": "Adresse IP"
+      },
+      "solar_leistung": {
+        "name": "Puissance solaire Witty"
+      },
+      "gesamtenergie_geladen": {
+        "name": "Énergie totale chargée"
+      },
+      "solarenergie_geladen": {
+        "name": "Énergie solaire chargée"
+      },
+      "verbunden": {
+        "name": "Connecté",
+        "state": {
+          "no": "Non",
+          "yes": "Oui"
+        }
+      },
+      "ladesession_badge": {
+        "name": "Badge de la session de charge"
+      },
+      "ladung_gesamt_session": {
+        "name": "Charge totale de la session en cours"
+      },
+      "ladung_netz_session": {
+        "name": "Charge réseau de la session en cours"
+      },
+      "ladung_pv_session": {
+        "name": "Charge PV de la session en cours"
+      },
+      "ladesession_rfid": {
+        "name": "Carte RFID de la session de charge"
+      },
+      "sg_ready_status": {
+        "name": "Statut SG Ready",
+        "state": {
+          "blocked": "Bloqué",
+          "normal": "Fonctionnement normal",
+          "start_recommendation": "Recommandation de démarrage",
+          "start_command": "Ordre de démarrage"
+        }
+      }
+    },
+    "switch": {
+      "boostmodus": {
+        "name": "Mode Boost"
+      }
+    }
+  },
+  "exceptions": {
+    "boost_cooldown": {
+      "message": "La wallbox traite encore la dernière commande. Veuillez patienter encore {seconds} secondes pour la synchronisation avec le cloud."
+    }
+  }
+}

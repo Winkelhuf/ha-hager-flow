@@ -18,7 +18,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: IntegrationBlueprintConf
 
     # Erstellt deinen funktionierenden Modbus-Coordinator
     coordinator = HagerFlowCoordinator(hass, host)
-    
+
+    # Modbus-Verbindung beim Entladen/Neuladen sauber schließen (sonst bleibt bei jedem
+    # Reload eine TCP-Verbindung zum EMC offen)
+    async def _async_close_client() -> None:
+        await hass.async_add_executor_job(coordinator.client.close)
+
+    entry.async_on_unload(_async_close_client)
+
     # Erste Gerätesuche und Datenabruf durchführen
     await coordinator.async_config_entry_first_refresh()
 

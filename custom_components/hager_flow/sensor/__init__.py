@@ -28,7 +28,6 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
             for template in METER_SENSOR_TEMPLATES:
                 dynamic_desc = HagerFlowSensorEntityDescription(
                     key=f"meter_{slave}_{template['key_suffix']}",
-                    name=f"{meter_name} {template['name_suffix']}",
                     register_address=template["addr"],
                     slave_id=slave,
                     data_type=template["type"],
@@ -47,7 +46,6 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
                 
                 dynamic_desc = HagerFlowSensorEntityDescription(
                     key=f"wb_{slave}_{template['key_suffix']}",
-                    name=f"{wb_name} {template['name_suffix']}",
                     register_address=template["addr"],
                     slave_id=slave,
                     data_type=template["type"],
@@ -66,7 +64,6 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
                 
                 dynamic_desc = HagerFlowSensorEntityDescription(
                     key=f"sg_{slave}_{template['key_suffix']}",
-                    name=f"{sg_name} {template['name_suffix']}",
                     register_address=template["addr"],
                     slave_id=slave,
                     data_type=template["type"],

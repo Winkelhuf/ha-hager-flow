@@ -9,8 +9,130 @@
       }
     }
   },
+  "entity": {
+    "sensor": {
+      "emc_seriennummer": {
+        "name": "Seriennummer"
+      },
+      "emc_firmware": {
+        "name": "Firmware"
+      },
+      "power_prioritaet_ziel": {
+        "name": "Ladepriorität",
+        "state": {
+          "car_first": "Auto zuerst",
+          "battery_first": "Batterie zuerst"
+        }
+      },
+      "power_prioritaet_entladung": {
+        "name": "Batterieentladung ins Auto",
+        "state": {
+          "forbidden": "Verboten",
+          "allowed": "Erlaubt"
+        }
+      },
+      "battery_power": {
+        "name": "Batterie Leistung"
+      },
+      "emc_autarkie_letzte_stunde": {
+        "name": "Autarkie letzte Stunde"
+      },
+      "emc_eigenverbrauch_letzte_stunde": {
+        "name": "Eigenverbrauch letzte Stunde"
+      },
+      "pv_leistung_gesamt": {
+        "name": "PV Leistung Gesamt"
+      },
+      "batterie_soc": {
+        "name": "Batterie Ladestand"
+      },
+      "hausverbrauch_gesamt": {
+        "name": "Hausverbrauch Gesamt"
+      },
+      "hausanschluss_leistung": {
+        "name": "Hausanschluss Leistung"
+      },
+      "leistung": {
+        "name": "Leistung Gesamt"
+      },
+      "leistung_l1": {
+        "name": "Leistung L1"
+      },
+      "leistung_l2": {
+        "name": "Leistung L2"
+      },
+      "leistung_l3": {
+        "name": "Leistung L3"
+      },
+      "meter_type": {
+        "name": "Typ",
+        "state": {
+          "undefined": "Undefiniert",
+          "root": "Hauptzähler (Root)",
+          "additional_generation": "Zusatzerzeugung",
+          "additional_consumer": "Zusatzverbraucher",
+          "additional_consumer_heating_cooling": "Zusatzverbraucher Heizung/Klima",
+          "farm": "Farm",
+          "unused": "Ungenutzt",
+          "wallbox": "Wallbox",
+          "farm_extended": "Farm Erweitert"
+        }
+      },
+      "firmware": {
+        "name": "Firmware"
+      },
+      "ip_adresse": {
+        "name": "IP Adresse"
+      },
+      "solar_leistung": {
+        "name": "Ladeleistung"
+      },
+      "gesamtenergie_geladen": {
+        "name": "Gesamtenergie geladen"
+      },
+      "solarenergie_geladen": {
+        "name": "Solarenergie geladen"
+      },
+      "verbunden": {
+        "name": "Verbunden",
+        "state": {
+          "no": "Nein",
+          "yes": "Ja"
+        }
+      },
+      "ladesession_badge": {
+        "name": "Ladesession Badge"
+      },
+      "ladung_gesamt_session": {
+        "name": "Ladung Gesamt aktuelle Session"
+      },
+      "ladung_netz_session": {
+        "name": "Netzanteil aktuelle Session"
+      },
+      "ladung_pv_session": {
+        "name": "Solaranteil aktuelle Session"
+      },
+      "ladesession_rfid": {
+        "name": "Ladesession RFID Karte"
+      },
+      "sg_ready_status": {
+        "name": "SG Ready Status",
+        "state": {
+          "blocked": "Blockiert",
+          "normal": "Normalbetrieb",
+          "start_recommendation": "Anlaufempfehlung",
+          "start_command": "Anlaufbefehl"
+        }
+      }
+    },
+    "switch": {
+      "boostmodus": {
+        "name": "Boostmodus"
+      }
+    }
+  },
   "exceptions": {
-    "boostcooldown": {
+    "boost_cooldown": {
       "message": "Die Wallbox verarbeitet noch den letzten Befehl. Bitte warte noch {seconds} Sekunden auf die Cloud-Synchronisation."
     }
   }

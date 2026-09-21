@@ -22,7 +22,6 @@ ENTITY_DESCRIPTIONS: tuple[HagerFlowSensorEntityDescription, ...] = (
         slave_id=0,
         data_type="string",
         string_count=16,
-        has_entity_name=True,
     ),
     HagerFlowSensorEntityDescription(
         key="emc_firmware",
@@ -30,7 +29,6 @@ ENTITY_DESCRIPTIONS: tuple[HagerFlowSensorEntityDescription, ...] = (
         slave_id=0,
         data_type="string",
         string_count=16,
-        has_entity_name=True,
     ),
     HagerFlowSensorEntityDescription(
         key="power_prioritaet_ziel",
@@ -38,7 +36,6 @@ ENTITY_DESCRIPTIONS: tuple[HagerFlowSensorEntityDescription, ...] = (
         slave_id=0,
         data_type="uint16",
         device_class=SensorDeviceClass.ENUM,
-        has_entity_name=True,
     ),
     HagerFlowSensorEntityDescription(
         key="power_prioritaet_entladung",
@@ -46,7 +43,6 @@ ENTITY_DESCRIPTIONS: tuple[HagerFlowSensorEntityDescription, ...] = (
         slave_id=0,
         data_type="uint16",
         device_class=SensorDeviceClass.ENUM,
-        has_entity_name=True,
     ),
     HagerFlowSensorEntityDescription(
         key="battery_power",
@@ -57,7 +53,6 @@ ENTITY_DESCRIPTIONS: tuple[HagerFlowSensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfPower.WATT,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
-        has_entity_name=True,
     ),
     HagerFlowSensorEntityDescription(
         key="emc_autarkie_letzte_stunde",
@@ -67,7 +62,6 @@ ENTITY_DESCRIPTIONS: tuple[HagerFlowSensorEntityDescription, ...] = (
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
-        has_entity_name=True,
     ),
     HagerFlowSensorEntityDescription(
         key="emc_eigenverbrauch_letzte_stunde",
@@ -77,7 +71,6 @@ ENTITY_DESCRIPTIONS: tuple[HagerFlowSensorEntityDescription, ...] = (
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
-        has_entity_name=True,
     ),
     HagerFlowSensorEntityDescription(
         key="pv_leistung_gesamt",
@@ -88,7 +81,6 @@ ENTITY_DESCRIPTIONS: tuple[HagerFlowSensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfPower.WATT,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
-        has_entity_name=True,
     ),
     HagerFlowSensorEntityDescription(
         key="batterie_soc",
@@ -99,7 +91,6 @@ ENTITY_DESCRIPTIONS: tuple[HagerFlowSensorEntityDescription, ...] = (
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
-        has_entity_name=True,
     ),
     HagerFlowSensorEntityDescription(
         key="hausverbrauch_gesamt",
@@ -110,7 +101,6 @@ ENTITY_DESCRIPTIONS: tuple[HagerFlowSensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfPower.WATT,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
-        has_entity_name=True,
     ),
     HagerFlowSensorEntityDescription(
         key="hausanschluss_leistung",
@@ -121,19 +111,17 @@ ENTITY_DESCRIPTIONS: tuple[HagerFlowSensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfPower.WATT,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
-        has_entity_name=True,
     ),
 )
 
 # 2. DYNAMIC METER TEMPLATES (Slaves 30-37)
 METER_SENSOR_TEMPLATES: tuple[dict[str, any], ...] = (
-    {"key_suffix": "leistung", "name_suffix": "Power", "addr": 4153, "type": "int32", "scale": 1.0, "unit": UnitOfPower.WATT, "device_class": SensorDeviceClass.POWER, "precision": 0},
-    {"key_suffix": "leistung_l1", "name_suffix": "Power L1", "addr": 4155, "type": "int32", "scale": 1.0, "unit": UnitOfPower.WATT, "device_class": SensorDeviceClass.POWER, "precision": 0},
-    {"key_suffix": "leistung_l2", "name_suffix": "Power L2", "addr": 4157, "type": "int32", "scale": 1.0, "unit": UnitOfPower.WATT, "device_class": SensorDeviceClass.POWER, "precision": 0},
-    {"key_suffix": "leistung_l3", "name_suffix": "Power L3", "addr": 4159, "type": "int32", "scale": 1.0, "unit": UnitOfPower.WATT, "device_class": SensorDeviceClass.POWER, "precision": 0},
+    {"key_suffix": "leistung", "addr": 4153, "type": "int32", "scale": 1.0, "unit": UnitOfPower.WATT, "device_class": SensorDeviceClass.POWER, "precision": 0},
+    {"key_suffix": "leistung_l1", "addr": 4155, "type": "int32", "scale": 1.0, "unit": UnitOfPower.WATT, "device_class": SensorDeviceClass.POWER, "precision": 0},
+    {"key_suffix": "leistung_l2", "addr": 4157, "type": "int32", "scale": 1.0, "unit": UnitOfPower.WATT, "device_class": SensorDeviceClass.POWER, "precision": 0},
+    {"key_suffix": "leistung_l3", "addr": 4159, "type": "int32", "scale": 1.0, "unit": UnitOfPower.WATT, "device_class": SensorDeviceClass.POWER, "precision": 0},
     {
         "key_suffix": "meter_type", 
-        "name_suffix": "Type", 
         "addr": 4148, 
         "type": "uint16", 
         "scale": 1.0, 
@@ -144,24 +132,23 @@ METER_SENSOR_TEMPLATES: tuple[dict[str, any], ...] = (
 
 # 3. DYNAMISCHE WALLBOX-VORLAGEN (Slaves 1-7)
 WALLBOX_SENSOR_TEMPLATES: tuple[dict[str, any], ...] = (
-    {"key_suffix": "firmware", "name_suffix": "Firmware", "addr": 4165, "type": "string", "count": 32, "scale": 1.0, "unit": None, "device_class": None},
-    {"key_suffix": "ip_adresse", "name_suffix": "IP Address", "addr": 5385, "type": "string", "count": 8, "scale": 1.0, "unit": None, "device_class": None},
-    {"key_suffix": "solar_leistung", "name_suffix": "Witty Solar Power", "addr": 5125, "type": "int16", "scale": 1.0, "unit": UnitOfPower.WATT, "device_class": SensorDeviceClass.POWER, "precision": 0},
-    {"key_suffix": "gesamtenergie_geladen", "name_suffix": "Total Energy Charged", "addr": 4609, "type": "uint32", "scale": 0.001, "unit": "kWh", "device_class": SensorDeviceClass.ENERGY},
-    {"key_suffix": "solarenergie_geladen", "name_suffix": "Solar Energy Charged", "addr": 4611, "type": "uint32", "scale": 0.001, "unit": "kWh", "device_class": SensorDeviceClass.ENERGY},
-    {"key_suffix": "verbunden", "name_suffix": "Connected", "addr": 4613, "type": "uint16", "scale": 1.0, "unit": None, "device_class": None},
-    {"key_suffix": "ladesession_badge", "name_suffix": "Charging Session Badge", "addr": 4929, "type": "string", "count": 16, "scale": 1.0, "unit": None, "device_class": None},
-    {"key_suffix": "ladung_gesamt_session", "name_suffix": "Total Charge Current Session", "addr": 4950, "type": "uint32", "scale": 0.001, "unit": "kWh", "device_class": SensorDeviceClass.ENERGY},
-    {"key_suffix": "ladung_netz_session", "name_suffix": "Grid Charge Current Session", "addr": 4952, "type": "uint32", "scale": 0.001, "unit": "kWh", "device_class": SensorDeviceClass.ENERGY},
-    {"key_suffix": "ladung_pv_session", "name_suffix": "PV Charge Current Session", "addr": 4954, "type": "uint32", "scale": 0.001, "unit": "kWh", "device_class": SensorDeviceClass.ENERGY},
-    {"key_suffix": "ladesession_rfid", "name_suffix": "Charging Session RFID Card", "addr": 5412, "type": "string", "count": 16, "scale": 1.0, "unit": None, "device_class": None},
+    {"key_suffix": "firmware", "addr": 4165, "type": "string", "count": 32, "scale": 1.0, "unit": None, "device_class": None},
+    {"key_suffix": "ip_adresse", "addr": 5385, "type": "string", "count": 8, "scale": 1.0, "unit": None, "device_class": None},
+    {"key_suffix": "solar_leistung", "addr": 5125, "type": "int16", "scale": 1.0, "unit": UnitOfPower.WATT, "device_class": SensorDeviceClass.POWER, "precision": 0},
+    {"key_suffix": "gesamtenergie_geladen", "addr": 4609, "type": "uint32", "scale": 0.001, "unit": "kWh", "device_class": SensorDeviceClass.ENERGY},
+    {"key_suffix": "solarenergie_geladen", "addr": 4611, "type": "uint32", "scale": 0.001, "unit": "kWh", "device_class": SensorDeviceClass.ENERGY},
+    {"key_suffix": "verbunden", "addr": 4613, "type": "uint16", "scale": 1.0, "unit": None, "device_class": SensorDeviceClass.ENUM},
+    {"key_suffix": "ladesession_badge", "addr": 4929, "type": "string", "count": 16, "scale": 1.0, "unit": None, "device_class": None},
+    {"key_suffix": "ladung_gesamt_session", "addr": 4950, "type": "uint32", "scale": 0.001, "unit": "kWh", "device_class": SensorDeviceClass.ENERGY},
+    {"key_suffix": "ladung_netz_session", "addr": 4952, "type": "uint32", "scale": 0.001, "unit": "kWh", "device_class": SensorDeviceClass.ENERGY},
+    {"key_suffix": "ladung_pv_session", "addr": 4954, "type": "uint32", "scale": 0.001, "unit": "kWh", "device_class": SensorDeviceClass.ENERGY},
+    {"key_suffix": "ladesession_rfid", "addr": 5412, "type": "string", "count": 16, "scale": 1.0, "unit": None, "device_class": None},
 )
 
 # 4. DYNAMISCHE SG-READY-VORLAGEN (Slaves 50-59)
 SG_READY_SENSOR_TEMPLATES: tuple[dict[str, any], ...] = (
     {
         "key_suffix": "sg_ready_status", 
-        "name_suffix": "SG Ready Status", 
         "addr": 4152, 
         "type": "int32", 
         "scale": 1.0, 

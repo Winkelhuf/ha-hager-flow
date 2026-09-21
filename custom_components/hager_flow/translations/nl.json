@@ -1,0 +1,139 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "host": "IP-adres (bijv. 192.168.70.30)"
+        },
+        "description": "Voer het IP-adres van je Hager flow-systeem in."
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "emc_seriennummer": {
+        "name": "Serienummer"
+      },
+      "emc_firmware": {
+        "name": "Firmware"
+      },
+      "power_prioritaet_ziel": {
+        "name": "Laadprioriteit",
+        "state": {
+          "car_first": "Auto eerst",
+          "battery_first": "Batterij eerst"
+        }
+      },
+      "power_prioritaet_entladung": {
+        "name": "Batterijontlading naar auto",
+        "state": {
+          "forbidden": "Verboden",
+          "allowed": "Toegestaan"
+        }
+      },
+      "battery_power": {
+        "name": "Batterijvermogen"
+      },
+      "emc_autarkie_letzte_stunde": {
+        "name": "Zelfvoorziening laatste uur"
+      },
+      "emc_eigenverbrauch_letzte_stunde": {
+        "name": "Eigen verbruik laatste uur"
+      },
+      "pv_leistung_gesamt": {
+        "name": "Totaal PV-vermogen"
+      },
+      "batterie_soc": {
+        "name": "Batterijniveau"
+      },
+      "hausverbrauch_gesamt": {
+        "name": "Totaal huisverbruik"
+      },
+      "hausanschluss_leistung": {
+        "name": "Vermogen netaansluiting"
+      },
+      "leistung": {
+        "name": "Totaal vermogen"
+      },
+      "leistung_l1": {
+        "name": "Vermogen L1"
+      },
+      "leistung_l2": {
+        "name": "Vermogen L2"
+      },
+      "leistung_l3": {
+        "name": "Vermogen L3"
+      },
+      "meter_type": {
+        "name": "Type",
+        "state": {
+          "undefined": "Niet gedefinieerd",
+          "root": "Hoofdmeter (root)",
+          "additional_generation": "Extra opwekking",
+          "additional_consumer": "Extra verbruiker",
+          "additional_consumer_heating_cooling": "Extra verbruiker verwarming/airco",
+          "farm": "Farm",
+          "unused": "Ongebruikt",
+          "wallbox": "Wallbox",
+          "farm_extended": "Farm uitgebreid"
+        }
+      },
+      "firmware": {
+        "name": "Firmware"
+      },
+      "ip_adresse": {
+        "name": "IP-adres"
+      },
+      "solar_leistung": {
+        "name": "Laadvermogen"
+      },
+      "gesamtenergie_geladen": {
+        "name": "Totaal geladen energie"
+      },
+      "solarenergie_geladen": {
+        "name": "Geladen zonne-energie"
+      },
+      "verbunden": {
+        "name": "Verbonden",
+        "state": {
+          "no": "Nee",
+          "yes": "Ja"
+        }
+      },
+      "ladesession_badge": {
+        "name": "Badge laadsessie"
+      },
+      "ladung_gesamt_session": {
+        "name": "Totale lading huidige sessie"
+      },
+      "ladung_netz_session": {
+        "name": "Laadaandeel net huidige sessie"
+      },
+      "ladung_pv_session": {
+        "name": "Laadaandeel PV huidige sessie"
+      },
+      "ladesession_rfid": {
+        "name": "RFID-pas laadsessie"
+      },
+      "sg_ready_status": {
+        "name": "SG Ready-status",
+        "state": {
+          "blocked": "Geblokkeerd",
+          "normal": "Normaal bedrijf",
+          "start_recommendation": "Startadvies",
+          "start_command": "Startcommando"
+        }
+      }
+    },
+    "switch": {
+      "boostmodus": {
+        "name": "Boostmodus"
+      }
+    }
+  },
+  "exceptions": {
+    "boost_cooldown": {
+      "message": "De wallbox verwerkt nog de laatste opdracht. Wacht nog {seconds} seconden op de cloudsynchronisatie."
+    }
+  }
+}

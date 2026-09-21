@@ -13,6 +13,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.exceptions import ServiceValidationError
 
+from .const import DOMAIN
 from .entity.base import IntegrationBlueprintEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -49,7 +50,6 @@ class HagerFlowWallboxBoostSwitch(IntegrationBlueprintEntity, SwitchEntity):
         
         desc = EntityDescription(
             key=self._key,
-            name=f"{wb_name} Boostmodus",
             icon="mdi:rocket-launch",
         )
         super().__init__(coordinator, desc, entry_id)
@@ -74,16 +74,19 @@ class HagerFlowWallboxBoostSwitch(IntegrationBlueprintEntity, SwitchEntity):
             return False
         return int(raw_value) == 1
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
-        """Schalte den Boostmodus ein (zeigt Fehlermeldung, wenn gesperrt)."""
+    def _raise_if_cooling_down(self) -> None:
+        """Wirft die übersetzte Fehlermeldung (exceptions.boost_cooldown), solange der Cooldown läuft."""
         if self._cooldown_until and datetime.now() < self._cooldown_until:
             restzeit = int((self._cooldown_until - datetime.now()).total_seconds())
             raise ServiceValidationError(
-                f"Die Wallbox verarbeitet noch den letzten Befehl. Bitte warte noch {restzeit} Sekunden auf die Cloud-Synchronisation.",
-                translation_domain="hager_flow",
+                translation_domain=DOMAIN,
                 translation_key="boost_cooldown",
-                translation_placeholders={"seconds": str(restzeit)}
+                translation_placeholders={"seconds": str(restzeit)},
             )
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Schalte den Boostmodus ein (zeigt Fehlermeldung, wenn gesperrt)."""
+        self._raise_if_cooling_down()
 
         self._optimistic_state = True
         self._cooldown_until = datetime.now() + timedelta(seconds=30)
@@ -92,14 +95,7 @@ class HagerFlowWallboxBoostSwitch(IntegrationBlueprintEntity, SwitchEntity):
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Schalte den Boostmodus aus (zeigt Fehlermeldung, wenn gesperrt)."""
-        if self._cooldown_until and datetime.now() < self._cooldown_until:
-            restzeit = int((self._cooldown_until - datetime.now()).total_seconds())
-            raise ServiceValidationError(
-                f"Die Wallbox verarbeitet noch den letzten Befehl. Bitte warte noch {restzeit} Sekunden auf die Cloud-Synchronisation.",
-                translation_domain="hager_flow",
-                translation_key="boost_cooldown",
-                translation_placeholders={"seconds": str(restzeit)}
-            )
+        self._raise_if_cooling_down()
 
         self._optimistic_state = False
         self._cooldown_until = datetime.now() + timedelta(seconds=30)
