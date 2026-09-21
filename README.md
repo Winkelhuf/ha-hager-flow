@@ -1,7 +1,6 @@
 # Hager flow Modbus Integration for Home Assistant
 
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2026.8%2B-blue.svg)](https://www.home-assistant.io/)
-[![Python](https://shields.io)](https://python.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 <br>
