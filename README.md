@@ -102,7 +102,9 @@ If your language isn't listed, Home Assistant falls back to English.
 
 ### Option 1: Via HACS (recommended)
 
-Since ??? 2026 Hager Flow Modbus has been integrated into the default store of HACS.
+Once accepted into the HACS default store, you'll be able to find and install
+**Hager flow Modbus** directly from HACS → Integrations without adding a
+custom repository first.
 
 One-Click Installation: <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=Winkelhuf&repository=ha-hager-flow"><img src="https://my.home-assistant.io/badges/hacs_repository.svg" alt="Open in HACS" /></a>
 
