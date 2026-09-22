@@ -1,6 +1,6 @@
 # Hager flow Modbus Integration for Home Assistant
 
-[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2026.8%2B-blue.svg)](https://www.home-assistant.io/)
+[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2025.12%2B-blue.svg)](https://www.home-assistant.io/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 <br>
@@ -27,7 +27,7 @@ To use this integration, your setup must meet the following minimum requirements
 * **Heat Pumps:** SG Ready connection within the systems.
 
 ### ⚙️ Software & Network Configuration
-* **Home Assistant:** Version **2026.8 or newer** is strictly required.
+* **Home Assistant:** Version **2025.12 or newer** is strictly required.
 * **Modbus TCP:** Must be explicitly **enabled** directly within your **Hager flow application**.
 * **Network Port:** **Port 502** must be open and accessible (verify your firewall settings if connection fails).
 
