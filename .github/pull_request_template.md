@@ -20,9 +20,7 @@ Fixes #(issue)
 
 ## Checklist
 
-- [ ] I have read the `CONTRIBUTING.md` document
 - [ ] I have accurately described the extent of human review, automated testing, and real-world testing
-- [ ] My code follows the code style of this project (run `script/lint`)
 - [ ] I have updated the documentation accordingly
 - [ ] I have updated the translations if needed
 
