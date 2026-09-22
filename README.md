@@ -141,7 +141,7 @@ Since this integration is not yet part of the HACS default store, you can easily
 1. In Home Assistant, navigate to **HACS** → **Integrations**.
 2. Click the **three dots (⋮)** in the top right corner and select **Custom repositories**.
 3. In the **Repository** field, paste the URL of this project:
-   `[https://github.com](https://github.com/Winkelhuf/ha-hager-flow)`
+   `[https://github.com/Winkelhuf/ha-hager-flow]`
 4. In the **Type** dropdown, select **Integration**.
 5. Click **Add** and wait for HACS to clone the repository.
 6. Find the newly listed **Hager flow Modbus** card, click **Download**, and select the latest version.
