@@ -123,7 +123,7 @@ If your language isn't listed, Home Assistant falls back to English.
 
 ## 🚀 Installation
 
-### Option 1: Via HACS (recommended)
+### Option 1: Via HACS (recommended once stable)
 
 Once accepted into the HACS default store, you'll be able to find and install
 **Hager flow Modbus** directly from HACS → Integrations without adding a
@@ -135,7 +135,19 @@ One-Click Installation: <a href="https://my.home-assistant.io/redirect/hacs_repo
 2. Search for **Hager flow Modbus**
 3. Install **Hager flow Modbus** and restart Home Assistant.
 
-### Option 2: Manual Installation (Private Testing)
+### Option 2: Via HACS Custom Repository (Current Method)
+Since this integration is not yet part of the HACS default store, you can easily add it manually as a Custom Repository:
+
+1. In Home Assistant, navigate to **HACS** → **Integrations**.
+2. Click the **three dots (⋮)** in the top right corner and select **Custom repositories**.
+3. In the **Repository** field, paste the URL of this project:
+   `[https://github.com](https://github.com/Winkelhuf/ha-hager-flow)`
+4. In the **Type** dropdown, select **Integration**.
+5. Click **Add** and wait for HACS to clone the repository.
+6. Find the newly listed **Hager flow Modbus** card, click **Download**, and select the latest version.
+7. **Restart** Home Assistant.
+
+### Option 3: Manual Installation (Private Testing)
 1. Download the latest release or clone the repository.
 2. Copy the inner `hager_flow` folder from `custom_components/` into your Home Assistant's local `config/custom_components/` directory.
 3. Your path should look like this: `/config/custom_components/hager_flow/`
