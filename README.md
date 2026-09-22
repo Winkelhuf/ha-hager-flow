@@ -41,25 +41,25 @@ A modern, highly optimized Home Assistant custom integration to monitor and cont
 *   **Battery Discharge into Car** (Translated state: *Allowed* / *Forbidden*)
 *   **Device Info:** System Serial Number, Mainboard Firmware Version
 
-### ⏱️ Dynamic Powermeter Sensors (Slaves 30-37, if detected)
+### ⏱️ Dynamic Powermeter Sensors (if detected)
 *   **Total Power** (W)
 *   **Power L1 / L2 / L3** (Individual Phase Power in W)
 *   **Type** (Translated state: *Root Meter*, *Additional Consumer*, *Additional Generation*, *Wallbox*, etc.)
 
-### 🔌 Dynamic Witty Wallbox Sensors & Controls (Slaves 1-7, if detected)
+### 🔌 Dynamic Witty Wallbox Sensors & Controls (if detected)
 *   **Device Info:** Name, Firmware Version, IP Address
 *   **Charging Status:** Total Charge / Grid Charge / PV Charge Current Session (all in kWh)
 *   **Diagnostic Values:** Charging Power (W), Session Badge ID, RFID Card ID, **Connected** (Translated state: *Yes* / *No*)
 *   **🚀 Boost Mode Switch:** Active writeable control switch (*On* = Full power / *Off* = Eco/Solar mode)
 
-### 🌡️ Dynamic SG Ready Sensors (Slaves 50-59, if detected)
+### 🌡️ Dynamic SG Ready Sensors (if detected)
 *   **SG Ready Status** (Translated state: *Blocked*, *Normal Operation*, *Start Recommendation*, *Start Command*)
 
 ---
 
 ## ⚠️ Important Information: Wallbox Boost Mode Sync & Cloud Latency
 
-When toggling the **Witty Boost Mode Switch**, the underlying Modbus backend writes directly to register `4631`. However, Hager's internal state machine processing and cloud synchronization logic cause a **significant feedback delay** (up to 20 seconds) before the register reflects the updated value.
+When toggling the **Witty Boost Mode Switch**, the underlying Modbus backend writes directly to register `4631`. However, Hager's internal state machine processing and cloud synchronization logic cause a **feedback delay** (up to 20 seconds) before the register reflects the updated value.
 
 To prevent rapid toggle-looping (where the switch jumps back and forth while waiting for the cloud) and to eliminate UI accidental double-clicks, this integration implements a **30-second Cloud-Latency Cooldown Filter**:
 
