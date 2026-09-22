@@ -28,7 +28,7 @@ To use this integration, your setup must meet the following minimum requirements
 
 ### ⚙️ Software & Network Configuration
 * **Home Assistant:** Version **2025.12 or newer** is strictly required.
-* **Modbus TCP:** Must be explicitly **enabled** directly within your **Hager flow application**.
+* **Modbus TCP:** Must be explicitly **enabled** directly within your **Hager flow application**. – if this option is not visible, you may need to contact Hager Support to have it unlocked.
 * **Network Port:** **Port 502** must be open and accessible (verify your firewall settings if connection fails).
 
 ---
