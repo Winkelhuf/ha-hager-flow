@@ -25,30 +25,35 @@ A modern, highly optimized Home Assistant custom integration to monitor and cont
 
 ## 📊 Monitored & Controlled Entities
 
+> **Note on language:** Sensor states below (e.g. "Allowed", "Blocked") are shown
+> translated into **your Home Assistant profile language**. Entity **names**
+> follow the server's system language instead. See [Translations](#-translations)
+> below.
+
 ### 🏠 Static Main System Sensors (Slave 0)
-*   **EMC PV Leistung Gesamt** (Total PV Power in W)
-*   **EMC Batterie SOC** (State of Charge in % without floating decimals)
-*   **EMC Hausverbrauch Gesamt** (Total Household Consumption in W)
-*   **Hausanschluss Leistung** (Total Grid Power in W)
+*   **Total PV Power** (W)
+*   **Battery SOC** (State of Charge in % without floating decimals)
+*   **Total House Consumption** (W)
+*   **Grid Power** (Total Grid Power in W)
 *   **Battery Power** (Battery Charge/Discharge in W)
-*   **EMC Autarkie / Eigenverbrauch** (Hourly statistics in %)
-*   **Ladepriorität** (Text State: *Auto zuerst* / *Batterie zuerst*)
-*   **Batterieentladung ins Auto** (Text State: *Erlaubt* / *Verboten*)
+*   **Autarky / Self-Consumption Last Hour** (Hourly statistics in %)
+*   **Charging Priority** (Translated state: *Car First* / *Battery First*)
+*   **Battery Discharge into Car** (Translated state: *Allowed* / *Forbidden*)
 *   **Device Info:** System Serial Number, Mainboard Firmware Version
 
 ### ⏱️ Dynamic Powermeter Sensors (Slaves 30-37, if detected)
 *   **Total Power** (W)
 *   **Power L1 / L2 / L3** (Individual Phase Power in W)
-*   **Meter Typ** (Text translation: *Hauptzähler (Root)*, *Zusatzverbraucher*, *Zusatzerzeugung*, *Wallbox*, etc.)
+*   **Type** (Translated state: *Root Meter*, *Additional Consumer*, *Additional Generation*, *Wallbox*, etc.)
 
 ### 🔌 Dynamic Witty Wallbox Sensors & Controls (Slaves 1-7, if detected)
 *   **Device Info:** Name, Firmware Version, IP Address
-*   **Charging Status:** Active session total energy, Grid energy portion, PV energy portion (all in kWh)
-*   **Diagnostic Values:** Current Witty Solar Power (W), Session Badge ID, RFID Card ID, Connection state
-*   **🚀 Witty Boostmodus Schalter:** Active writeable control switch (*On* = Full power / *Off* = Eco/Solar mode)
+*   **Charging Status:** Total Charge / Grid Charge / PV Charge Current Session (all in kWh)
+*   **Diagnostic Values:** Charging Power (W), Session Badge ID, RFID Card ID, **Connected** (Translated state: *Yes* / *No*)
+*   **🚀 Boost Mode Switch:** Active writeable control switch (*On* = Full power / *Off* = Eco/Solar mode)
 
 ### 🌡️ Dynamic SG Ready Sensors (Slaves 50-59, if detected)
-*   **SG Ready Status** (Text translation: *Blockiert*, *Normalbetrieb*, *Anlaufempfehlung*, *Anlaufbefehl*)
+*   **SG Ready Status** (Translated state: *Blocked*, *Normal Operation*, *Start Recommendation*, *Start Command*)
 
 ---
 
@@ -62,6 +67,34 @@ To prevent rapid toggle-looping (where the switch jumps back and forth while wai
 2. **UI Lockout:** The switch instantly turns grey (**Disabled**) for **exactly 30 seconds**.
 3. **Background Processing:** Pymodbus pushes the command and gives the hardware ample time to process the state change.
 4. **Re-Arming:** After 30 seconds, the lockout releases, the switch becomes colorful/clickable again, and normal real-time Modbus polling resumes.
+
+---
+
+## 🌍 Translations
+
+All entity names and states are translated. Sensor **names** follow the server's
+system language; sensor **states** (e.g. "Allowed", "Blocked") follow each
+user's own profile language.
+
+| Language | File |
+|---|---|
+| 🇩🇪 German | `translations/de.json` |
+| 🇬🇧 English (source) | `translations/en.json` |
+| 🇫🇷 French | `translations/fr.json` |
+| 🇳🇱 Dutch | `translations/nl.json` |
+
+If your language isn't listed, Home Assistant falls back to English.
+
+### Adding a new language
+
+1. Copy `custom_components/hager_flow/translations/en.json` to
+   `custom_components/hager_flow/translations/<language-code>.json`
+   (e.g. `it.json`, `es.json`) — use a two-letter
+   [Home Assistant supported language code](https://www.home-assistant.io/integrations/homeassistant/#supported-languages).
+2. Translate only the **values**, never the keys (e.g. `"allowed"`) and never
+   placeholders like `{seconds}`.
+3. Open a pull request. No code changes are needed — Home Assistant picks up
+   the new file automatically.
 
 ---
 
@@ -108,18 +141,18 @@ This integration utilizes the modern async **DataUpdateCoordinator** design patt
 
 ---
 
-## 📜 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-
-
-
 ## Built with AI
 
 This repository was developed with significant assistance from AI coding assistants (Gemini, Claude). We believe that community integrations may benefit from extensive AI assistance when their actual review, testing, limitations, and maturity are communicated honestly. These safeguards improve verifiability but do not guarantee correctness.
 
+---
 
 ## Disclaimer
 
 This integration is not affiliated with or endorsed by Hager. "hager" and "flow" are trademarks of their respective owners. Use at your own risk.
+
+---
+
+## 📜 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
