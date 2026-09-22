@@ -10,6 +10,29 @@ A modern, highly optimized Home Assistant custom integration to monitor and cont
 
 ---
 
+## 📋 Prerequisites
+
+To use this integration, your setup must meet the following minimum requirements:
+
+### 🔧 Required Hardware & System Base
+* **Base Controller:** **Hager flow XEM470** Energy Management Controller (EMC).
+* **Network Access:** The controller must be connected to the same local network as your Home Assistant instance.
+* **IP Configuration:** A **static IP address** for the Hager flow controller is highly recommended to prevent connection loss.
+
+### 🔌 Supported Optional Hardware (Hager-only)
+⚠️ **Important:** The built-in Auto-Discovery engine only works for **original Hager devices** connected directly to the system.
+* **Powermeters:** Additional Hager sub-meters (XVA6xx, ECR38xD).
+* **Wallboxes:** Hager witty charging stations (flow, solar, plus).
+* **Inverters & Storage:** Connected Hager-supported solar inverters (XEM1200) and battery storage systems (XEM3x00, XEM4x00).
+* **Heat Pumps:** SG Ready connection within the systems.
+
+### ⚙️ Software & Network Configuration
+* **Home Assistant:** Version **2026.8 or newer** is strictly required.
+* **Modbus TCP:** Must be explicitly **enabled** directly within your **Hager flow application**.
+* **Network Port:** **Port 502** must be open and accessible (verify your firewall settings if connection fails).
+
+---
+
 ## 📋 Features
 
 - ⚡ **100% Local Control:** Connects directly via Modbus TCP (Port 502) to your system without relying on cloud APIs.
