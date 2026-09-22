@@ -11,8 +11,6 @@ on:
     branches:
       - main
 
-permissions: {}
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
@@ -36,14 +34,12 @@ jobs:
     name: HACS validation
     runs-on: ubuntu-latest
     permissions:
-      contents: read # check out the repository, read releases
+      contents: read       # Ermöglicht das Auslesen von Repository-Inhalten und Releases
+      pull-requests: read  # Erlaubt Dependabot-PRs den sicheren API-Lesezugriff
     steps:
       - name: Run HACS validation
         uses: hacs/action@d556e736723344f83838d08488c983a15381059a # 22.5.0
         with:
           category: integration
-          # Remove this 'ignore' key when you have added brand images for your integration
-          # https://developers.home-assistant.io/docs/creating_integration_file_structure/#brand-images---brand
-          #ignore: brands
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
