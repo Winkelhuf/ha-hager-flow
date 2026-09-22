@@ -5,7 +5,10 @@
         "data": {
           "host": "Adresse IP (p. ex. 192.168.70.30)"
         },
-        "description": "Veuillez saisir l'adresse IP de votre système Hager flow."
+        "description": "Veuillez saisir l'adresse IP de votre système Hager flow.",
+        "errors": {
+          "cannot_connect": "Connexion au système Hager flow impossible. Veuillez vérifier l'adresse IP."
+        }
       }
     }
   },
