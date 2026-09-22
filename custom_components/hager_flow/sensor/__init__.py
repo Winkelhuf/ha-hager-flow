@@ -9,7 +9,7 @@ from .descriptions import (
     SG_READY_SENSOR_TEMPLATES,
     HagerFlowSensorEntityDescription
 )
-from .entity import IntegrationBlueprintSensor
+from .entity import HagerFlowSensor
 
 PARALLEL_UPDATES = 0
 
@@ -20,7 +20,7 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
 
     # 1. Feste Hauptsensoren hinzufügen
     for description in ENTITY_DESCRIPTIONS:
-        entities.append(IntegrationBlueprintSensor(coordinator, description, entry.entry_id))
+        entities.append(HagerFlowSensor(coordinator, description, entry.entry_id))
 
     # 2. Dynamisch Sensoren für erkannte RTU-Zähler hinzufügen (30-37)
     if coordinator.discovered_meters:
@@ -36,7 +36,7 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
                     state_class=SensorStateClass.MEASUREMENT,
                     suggested_display_precision=template.get("precision"),
                 )
-                entities.append(IntegrationBlueprintSensor(coordinator, dynamic_desc, entry.entry_id))
+                entities.append(HagerFlowSensor(coordinator, dynamic_desc, entry.entry_id))
 
     # 3. Dynamisch Sensoren für erkannte Wallboxen hinzufügen (1-7)
     if coordinator.discovered_wallboxes:
@@ -54,7 +54,7 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
                     state_class=s_class,
                     suggested_display_precision=template.get("precision"),
                 )
-                entities.append(IntegrationBlueprintSensor(coordinator, dynamic_desc, entry.entry_id))
+                entities.append(HagerFlowSensor(coordinator, dynamic_desc, entry.entry_id))
 
     # 4. Dynamisch Sensoren für erkannte SG Ready Einheiten hinzufügen (50-59)
     if coordinator.discovered_sg_ready:
@@ -72,6 +72,6 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
                     native_unit_of_measurement=template["unit"],
                     state_class=s_class,
                 )
-                entities.append(IntegrationBlueprintSensor(coordinator, dynamic_desc, entry.entry_id))
+                entities.append(HagerFlowSensor(coordinator, dynamic_desc, entry.entry_id))
 
     async_add_entities(entities)

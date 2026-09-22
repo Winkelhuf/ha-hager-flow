@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from .descriptions import HagerFlowSensorEntityDescription
-from ..entity.base import IntegrationBlueprintEntity
+from ..entity.base import HagerFlowEntity
 
 # ENUM-Zustände sind sprachfreie Schlüssel (Register-Wert -> Schlüssel), gruppiert
 # nach translation_key des Sensors. Die Anzeigetexte stehen in
@@ -35,7 +35,7 @@ BIT_OF_STATE_SENSOR: dict[str, int] = {
 }
 
 
-class IntegrationBlueprintSensor(IntegrationBlueprintEntity, SensorEntity):
+class HagerFlowSensor(HagerFlowEntity, SensorEntity):
     """Repräsentiert einen Hager Modbus Sensor."""
 
     entity_description: HagerFlowSensorEntityDescription

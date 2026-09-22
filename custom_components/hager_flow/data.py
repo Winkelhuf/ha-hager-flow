@@ -13,11 +13,11 @@ if TYPE_CHECKING:
     from .coordinator import HagerFlowCoordinator
 
 
-type IntegrationBlueprintConfigEntry = ConfigEntry["IntegrationBlueprintData"]
+type HagerFlowConfigEntry = ConfigEntry["HagerFlowData"]
 
 
 @dataclass
-class IntegrationBlueprintData:
+class HagerFlowData:
     """Runtime data stored on the config entry after a successful setup."""
 
     client: object

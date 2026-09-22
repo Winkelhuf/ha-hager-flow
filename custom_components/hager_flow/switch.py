@@ -14,7 +14,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.exceptions import ServiceValidationError
 
 from .const import DOMAIN
-from .entity.base import IntegrationBlueprintEntity
+from .entity.base import HagerFlowEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ async def async_setup_entry(
 
     async_add_entities(entities)
 
-class HagerFlowWallboxBoostSwitch(IntegrationBlueprintEntity, SwitchEntity):
+class HagerFlowWallboxBoostSwitch(HagerFlowEntity, SwitchEntity):
     """Schalter zur Steuerung des Boostmodus einer Witty Wallbox mit Benutzer-Feedback."""
 
     def __init__(self, coordinator, slave_id: int, wb_name: str, entry_id: str) -> None:

@@ -27,7 +27,7 @@ def translation_key_for(key: str) -> str:
     return match["suffix"] if match else key
 
 
-class IntegrationBlueprintEntity(CoordinatorEntity["HagerFlowCoordinator"]):
+class HagerFlowEntity(CoordinatorEntity["HagerFlowCoordinator"]):
     """Basis-Entität, die Geräteinformationen, eine eindeutige ID und Übersetzungen bereitstellt."""
 
     _attr_has_entity_name = True
