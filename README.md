@@ -36,6 +36,7 @@ To use this integration, your setup must meet the following minimum requirements
 ## 📋 Features
 
 - ⚡ **100% Local Control:** Connects directly via Modbus TCP (Port 502) to your system without relying on cloud APIs.
+- 🔋 **Home Assistant Energy Dashboard Ready:** Automatically derives `kWh` energy sensors (with correct `total_increasing` state class) from every available power reading — no manual Riemann-sum helper entities required. See [Energy Dashboard Support](#-home-assistant-energy-dashboard-support) below.
 - 🌍 **Native Multilingual Support:** Automatically adapts to your Home Assistant system language. Fully translated into **English**, **Deutsch**, **Français**, and **Nederlands** for all entity names, states, and configuration dialogs.
 - 📦 **Multi-Hub Support:** Add multiple Hager flow devices with different IP addresses simultaneously without entity conflicts.
 - 🧠 **Smart Auto-Discovery (Powermeters):** Scans Slave IDs 30–37 on startup. Dynamically creates entities *only* if a valid text name starting with `EC` (Energy Control) is broadcasted, natively using the device's real name.
@@ -63,16 +64,21 @@ To use this integration, your setup must meet the following minimum requirements
 *   **Charging Priority** (Translated state: *Car First* / *Battery First*)
 *   **Battery Discharge into Car** (Translated state: *Allowed* / *Forbidden*)
 *   **Device Info:** System Serial Number, Mainboard Firmware Version
+*   🔋 **Total PV Energy, House Consumption Energy** (kWh, derived) — see [Energy Dashboard Support](#-home-assistant-energy-dashboard-support)
+*   🔋 **Grid Consumption Energy / Grid Feed-in Energy** (kWh, derived)
+*   🔋 **Battery Charge Energy / Battery Discharge Energy** (kWh, derived)
 
 ### ⏱️ Dynamic Powermeter Sensors (if detected)
 *   **Total Power** (W)
 *   **Power L1 / L2 / L3** (Individual Phase Power in W)
 *   **Type** (Translated state: *Root Meter*, *Additional Consumer*, *Additional Generation*, *Wallbox*, etc.)
+*   🔋 **Energy Consumption / Energy Feed-in** (kWh, derived per meter) — see [Energy Dashboard Support](#-home-assistant-energy-dashboard-support)
 
 ### 🔌 Dynamic Witty Wallbox Sensors & Controls (if detected)
 *   **Device Info:** Name, Firmware Version, IP Address
-*   **Charging Status:** Total Charge / Grid Charge / PV Charge Current Session (all in kWh)
+*   **Charging Status:** Total Charge / Grid Charge / PV Charge Current Session (all in kWh, natively reported by the wallbox — now correctly exposed as `total_increasing`, so they're selectable in the Energy Dashboard)
 *   **Diagnostic Values:** Charging Power (W), Session Badge ID, RFID Card ID, **Connected** (Translated state: *Yes* / *No*)
+*   🔋 **Energy Consumption (calculated)** (kWh, derived from the live Charging Power reading — a locally computed cross-check alongside the wallbox's own native kWh counters)
 *   **🚀 Boost Mode Switch:** Active writeable control switch (*On* = Full power / *Off* = Eco/Solar mode)
 
 ### 🌡️ Dynamic SG Ready Sensors (if detected)
@@ -93,7 +99,37 @@ To prevent rapid toggle-looping (where the switch jumps back and forth while wai
 
 ---
 
-## 🌍 Translations
+## 🔋 Home Assistant Energy Dashboard Support
+
+The Hager flow EMC reports most quantities as instantaneous **power** (W), not cumulative **energy** (kWh) — but the Home Assistant Energy Dashboard needs the latter. This integration bridges that gap automatically, without requiring you to set up any `utility_meter` or Riemann-sum helper entities by hand.
+
+### How it works
+
+For every relevant power reading, the integration derives a matching `kWh` sensor using trapezoidal integration on the same 5-second polling cycle already used for regular updates:
+
+*   **Main system** (always present): PV production, house consumption, grid import/export, and battery charge/discharge each get their own derived energy sensor.
+*   **Every auto-discovered Powermeter**: gets an `Energy Consumption` and `Energy Feed-in` energy sensor pair, derived from its `Total Power` reading.
+*   **Every auto-discovered Wallbox**: gets an additional `Energy Consumption (calculated)` sensor derived from its live Charging Power, alongside the wallbox's own native kWh counters.
+
+New devices found by Auto-Discovery (e.g. after adding an RTU meter or wallbox and reloading the integration) automatically get their own energy sensors too — no code or configuration changes needed.
+
+### Import / export splitting
+
+Signed power readings (grid connection, battery, and generic powermeters, where the sign convention depends on the device role) are split into two separate, always-positive energy sensors — e.g. **Grid Consumption Energy** and **Grid Feed-in Energy** — exactly as the Energy Dashboard expects for grid and battery sources. A sensor for a direction that never occurs (e.g. `Energy Feed-in` on a pure consumer meter) simply stays at `0 kWh`, which is expected and not an error.
+
+### Persistence across restarts
+
+All derived energy sensors use Home Assistant's `RestoreSensor`, so their running totals survive integration reloads and Home Assistant restarts instead of resetting to zero — keeping your daily/weekly/monthly statistics in the Energy Dashboard continuous.
+
+### Setting it up
+
+After updating, go to **Settings → Dashboards → Energy** and assign the new sensors to the matching category (e.g. *Grid consumption* → `Grid Consumption Energy`, *Return to grid* → `Grid Feed-in Energy`, *Solar production* → `Total PV Energy`, *Battery systems* → `Battery Charge/Discharge Energy`).
+
+> [!NOTE]
+> Because the sign convention of signed registers isn't documented for every device role, double-check once after setup that e.g. drawing power from the grid increases `Grid Consumption Energy` and not `Grid Feed-in Energy`. If it's reversed for your setup, please open an issue.
+
+---
+
 
 All entity names and states are translated. Sensor **names** follow the server's
 system language; sensor **states** (e.g. "Allowed", "Blocked") follow each
