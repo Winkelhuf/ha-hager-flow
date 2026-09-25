@@ -55,6 +55,24 @@
       "hausanschluss_leistung": {
         "name": "Hausanschluss Leistung"
       },
+      "pv_energie_gesamt": {
+        "name": "PV Energie Gesamt"
+      },
+      "hausverbrauch_energie": {
+        "name": "Hausverbrauch Energie"
+      },
+      "netzbezug_energie": {
+        "name": "Netzbezug Energie"
+      },
+      "netzeinspeisung_energie": {
+        "name": "Netzeinspeisung Energie"
+      },
+      "batterie_ladung_energie": {
+        "name": "Batterie Ladung Energie"
+      },
+      "batterie_entladung_energie": {
+        "name": "Batterie Entladung Energie"
+      },
       "leistung": {
         "name": "Leistung Gesamt"
       },
@@ -66,6 +84,15 @@
       },
       "leistung_l3": {
         "name": "Leistung L3"
+      },
+      "energie_bezug": {
+        "name": "Energie Bezug"
+      },
+      "energie_bezug_berechnet": {
+        "name": "Energie Bezug (berechnet)"
+      },
+      "energie_einspeisung": {
+        "name": "Energie Einspeisung"
       },
       "meter_type": {
         "name": "Typ",

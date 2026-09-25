@@ -55,6 +55,24 @@
       "hausanschluss_leistung": {
         "name": "Vermogen netaansluiting"
       },
+      "pv_energie_gesamt": {
+        "name": "Totaal PV-energie"
+      },
+      "hausverbrauch_energie": {
+        "name": "Energieverbruik huis"
+      },
+      "netzbezug_energie": {
+        "name": "Energie afgenomen van net"
+      },
+      "netzeinspeisung_energie": {
+        "name": "Energie geleverd aan net"
+      },
+      "batterie_ladung_energie": {
+        "name": "Energie batterij laden"
+      },
+      "batterie_entladung_energie": {
+        "name": "Energie batterij ontladen"
+      },
       "leistung": {
         "name": "Totaal vermogen"
       },
@@ -66,6 +84,15 @@
       },
       "leistung_l3": {
         "name": "Vermogen L3"
+      },
+      "energie_bezug": {
+        "name": "Energie afname"
+      },
+      "energie_bezug_berechnet": {
+        "name": "Energie afname (berekend)"
+      },
+      "energie_einspeisung": {
+        "name": "Energie teruglevering"
       },
       "meter_type": {
         "name": "Type",
