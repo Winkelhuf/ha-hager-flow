@@ -130,6 +130,7 @@ After updating, go to **Settings → Dashboards → Energy** and assign the new 
 
 ---
 
+## 🌍 Translations
 
 All entity names and states are translated. Sensor **names** follow the server's
 system language; sensor **states** (e.g. "Allowed", "Blocked") follow each
