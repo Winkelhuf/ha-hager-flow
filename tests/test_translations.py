@@ -25,7 +25,11 @@ from custom_components.hager_flow.sensor.descriptions import (
     SG_READY_SENSOR_TEMPLATES,
     WALLBOX_SENSOR_TEMPLATES,
 )
-from custom_components.hager_flow.sensor.energy import ENERGY_ENTITY_DESCRIPTIONS, METER_ENERGY_TEMPLATES
+from custom_components.hager_flow.sensor.energy import (
+    ENERGY_ENTITY_DESCRIPTIONS,
+    METER_ENERGY_TEMPLATES,
+    WALLBOX_ENERGY_TEMPLATES,
+)
 from custom_components.hager_flow.sensor.entity import BIT_OF_STATE_SENSOR, STATE_MAPS
 
 COMPONENT = Path(__file__).parent.parent / "custom_components" / "hager_flow"
@@ -61,6 +65,7 @@ def _code_sensor_keys() -> set[str]:
     keys = {translation_key_for(d.key) for d in ENTITY_DESCRIPTIONS}
     keys |= {translation_key_for(d.key) for d in ENERGY_ENTITY_DESCRIPTIONS}
     keys |= {translation_key_for(f"meter_30_{t['key_suffix']}") for t in METER_ENERGY_TEMPLATES}
+    keys |= {translation_key_for(f"wb_1_{t['key_suffix']}") for t in WALLBOX_ENERGY_TEMPLATES}
     for prefix, templates in (
         ("meter_30_", METER_SENSOR_TEMPLATES),
         ("wb_1_", WALLBOX_SENSOR_TEMPLATES),

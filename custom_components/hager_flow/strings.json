@@ -88,6 +88,9 @@
       "energie_bezug": {
         "name": "Energy Consumption"
       },
+      "energie_bezug_berechnet": {
+        "name": "Energy Consumption (calculated)"
+      },
       "energie_einspeisung": {
         "name": "Energy Feed-in"
       },

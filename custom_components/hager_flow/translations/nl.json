@@ -88,6 +88,9 @@
       "energie_bezug": {
         "name": "Energie afname"
       },
+      "energie_bezug_berechnet": {
+        "name": "Energie afname (berekend)"
+      },
       "energie_einspeisung": {
         "name": "Energie teruglevering"
       },

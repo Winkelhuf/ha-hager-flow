@@ -12,8 +12,10 @@ from .descriptions import (
 from .energy import (
     ENERGY_ENTITY_DESCRIPTIONS,
     METER_ENERGY_TEMPLATES,
+    WALLBOX_ENERGY_TEMPLATES,
     HagerFlowEnergySensor,
     build_meter_energy_description,
+    build_wallbox_energy_description,
 )
 from .entity import HagerFlowSensor
 
@@ -82,6 +84,18 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
                     suggested_display_precision=template.get("precision"),
                 )
                 entities.append(HagerFlowSensor(coordinator, dynamic_desc, entry.entry_id))
+
+            # 3b. Berechneter Energiewert (kWh) für diese Wallbox – zusätzlich
+            #     zu den nativen kWh-Registern oben, läuft automatisch für
+            #     jede per Auto-Discovery gefundene Wallbox mit.
+            for wb_energy_template in WALLBOX_ENERGY_TEMPLATES:
+                wb_energy_desc = build_wallbox_energy_description(
+                    slave,
+                    wb_energy_template["key_suffix"],
+                    wb_energy_template["source_suffix"],
+                    wb_energy_template["direction"],
+                )
+                entities.append(HagerFlowEnergySensor(coordinator, wb_energy_desc, entry.entry_id))
 
     # 4. Dynamisch Sensoren für erkannte SG Ready Einheiten hinzufügen (50-59)
     if coordinator.discovered_sg_ready:

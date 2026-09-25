@@ -88,6 +88,9 @@
       "energie_bezug": {
         "name": "Énergie soutirée"
       },
+      "energie_bezug_berechnet": {
+        "name": "Énergie soutirée (calculée)"
+      },
       "energie_einspeisung": {
         "name": "Énergie injectée"
       },

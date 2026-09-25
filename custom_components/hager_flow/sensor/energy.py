@@ -139,6 +139,44 @@ def build_meter_energy_description(slave: int, key_suffix: str, direction: str) 
     )
 
 
+# Wallboxen liefern bereits eigene, native kWh-Zähler direkt vom Gerät (siehe
+# WALLBOX_SENSOR_TEMPLATES: gesamtenergie_geladen, solarenergie_geladen, ...).
+# Zusätzlich wird hier – analog zu den Zählern – ein selbst berechneter
+# Energiewert aus der Ladeleistung integriert. Das zugrunde liegende Register
+# 5125 heißt intern "solar_leistung" (Namensüberbleibsel aus der
+# Modbus-Beschreibung des Herstellers), liefert aber tatsächlich die
+# GESAMTE Ladeleistung der Wallbox, nicht nur den PV-Anteil – daher ist
+# dieser berechnete Sensor eine sinnvolle Gegenprüfung zu
+# "gesamtenergie_geladen". Eine Wallbox bezieht nur Energie und speist nie
+# ein, deshalb gibt es hier nur eine Richtung statt eines
+# Bezug/Einspeisung-Paars wie bei den Zählern.
+# Der Key-Suffix "_berechnet" grenzt den Sensor bewusst von den nativen
+# Modbus-Energiezählern ab.
+WALLBOX_ENERGY_TEMPLATES: tuple[dict[str, str], ...] = (
+    {"key_suffix": "energie_bezug_berechnet", "source_suffix": "solar_leistung", "direction": "positive"},
+)
+
+
+def build_wallbox_energy_description(
+    slave: int, key_suffix: str, source_suffix: str, direction: str
+) -> HagerFlowEnergyEntityDescription:
+    """Erzeuge die Energie-Beschreibung für eine dynamisch erkannte Wallbox.
+
+    Wird von sensor/__init__.py für jede per Auto-Discovery gefundene
+    Wallbox (Slaves 1-7) aufgerufen.
+    """
+    return HagerFlowEnergyEntityDescription(
+        key=f"wb_{slave}_{key_suffix}",
+        source_key=f"wb_{slave}_{source_suffix}",
+        slave_id=slave,
+        direction=direction,
+        device_class=SensorDeviceClass.ENERGY,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        suggested_display_precision=2,
+    )
+
+
 class HagerFlowEnergySensor(HagerFlowEntity, RestoreSensor):
     """Integriert einen Leistungssensor (W) per Trapezregel zu einem kWh-Zähler.
 

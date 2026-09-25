@@ -88,6 +88,9 @@
       "energie_bezug": {
         "name": "Energie Bezug"
       },
+      "energie_bezug_berechnet": {
+        "name": "Energie Bezug (berechnet)"
+      },
       "energie_einspeisung": {
         "name": "Energie Einspeisung"
       },
