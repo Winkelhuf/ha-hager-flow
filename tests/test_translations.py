@@ -25,6 +25,7 @@ from custom_components.hager_flow.sensor.descriptions import (
     SG_READY_SENSOR_TEMPLATES,
     WALLBOX_SENSOR_TEMPLATES,
 )
+from custom_components.hager_flow.sensor.energy import ENERGY_ENTITY_DESCRIPTIONS, METER_ENERGY_TEMPLATES
 from custom_components.hager_flow.sensor.entity import BIT_OF_STATE_SENSOR, STATE_MAPS
 
 COMPONENT = Path(__file__).parent.parent / "custom_components" / "hager_flow"
@@ -58,6 +59,8 @@ LANGUAGE_FILES = sorted(p for p in TRANSLATIONS.glob("*.json") if p.stem != "en"
 def _code_sensor_keys() -> set[str]:
     """Alle Übersetzungs-Keys, die der Code für Sensoren erzeugt."""
     keys = {translation_key_for(d.key) for d in ENTITY_DESCRIPTIONS}
+    keys |= {translation_key_for(d.key) for d in ENERGY_ENTITY_DESCRIPTIONS}
+    keys |= {translation_key_for(f"meter_30_{t['key_suffix']}") for t in METER_ENERGY_TEMPLATES}
     for prefix, templates in (
         ("meter_30_", METER_SENSOR_TEMPLATES),
         ("wb_1_", WALLBOX_SENSOR_TEMPLATES),

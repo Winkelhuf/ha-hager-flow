@@ -55,6 +55,24 @@
       "hausanschluss_leistung": {
         "name": "Grid Power"
       },
+      "pv_energie_gesamt": {
+        "name": "Total PV Energy"
+      },
+      "hausverbrauch_energie": {
+        "name": "House Consumption Energy"
+      },
+      "netzbezug_energie": {
+        "name": "Grid Consumption Energy"
+      },
+      "netzeinspeisung_energie": {
+        "name": "Grid Feed-in Energy"
+      },
+      "batterie_ladung_energie": {
+        "name": "Battery Charge Energy"
+      },
+      "batterie_entladung_energie": {
+        "name": "Battery Discharge Energy"
+      },
       "leistung": {
         "name": "Total Power"
       },
@@ -66,6 +84,12 @@
       },
       "leistung_l3": {
         "name": "Power L3"
+      },
+      "energie_bezug": {
+        "name": "Energy Consumption"
+      },
+      "energie_einspeisung": {
+        "name": "Energy Feed-in"
       },
       "meter_type": {
         "name": "Type",

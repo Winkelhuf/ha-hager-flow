@@ -55,6 +55,24 @@
       "hausanschluss_leistung": {
         "name": "Puissance réseau"
       },
+      "pv_energie_gesamt": {
+        "name": "Énergie PV totale"
+      },
+      "hausverbrauch_energie": {
+        "name": "Énergie consommée par la maison"
+      },
+      "netzbezug_energie": {
+        "name": "Énergie soutirée au réseau"
+      },
+      "netzeinspeisung_energie": {
+        "name": "Énergie injectée au réseau"
+      },
+      "batterie_ladung_energie": {
+        "name": "Énergie de charge de la batterie"
+      },
+      "batterie_entladung_energie": {
+        "name": "Énergie de décharge de la batterie"
+      },
       "leistung": {
         "name": "Puissance"
       },
@@ -66,6 +84,12 @@
       },
       "leistung_l3": {
         "name": "Puissance L3"
+      },
+      "energie_bezug": {
+        "name": "Énergie soutirée"
+      },
+      "energie_einspeisung": {
+        "name": "Énergie injectée"
       },
       "meter_type": {
         "name": "Type",
