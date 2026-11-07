@@ -76,6 +76,10 @@ GET/PUT https://e3dc.e3dc.com/wallboxes/{emcSeriennummer}/{index}/configuration
 
 - `{emcSeriennummer}` ist die `deviceId` des EMC-Device-Links (die SN aus der Portal-URL).
 - `{index}` ist der `index` der Wallbox aus `…/sub` → `controlled[]`.
-- Schreiben als Teil-PUT `{"soc": <wert>}`, wie beim Boost. Kein `config/sync` nötig.
-- Verifiziert per Mitschnitt am 07.11.2026 (Feldname `soc`, Nachbarfelder `sunModeActive`,
+- **Schreiben: lesen-ändern-zurückschreiben.** Ein Teil-PUT nur mit `soc` wird mit
+  HTTP 400 „invalid request payload input" (errno 101) abgelehnt. Deshalb die komplette
+  Konfiguration per GET holen, `soc` ändern und das ganze Objekt zurück-PUTen; reine
+  Messwerte/Statusfelder (`pmPower*`, `pmEnergy*`, `status`, `deviceState`, `serial`,
+  `appSoftware`, `keyState`) werden weggelassen. Kein `config/sync` nötig.
+- Feldname `soc` per Mitschnitt am 07.11.2026 verifiziert (Nachbarfelder `sunModeActive`,
   `minChargeCurrent`, `minChargePower`, `maxChargeCurrent`, `parameterList`, `chargeFull`).

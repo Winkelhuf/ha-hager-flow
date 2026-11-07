@@ -30,6 +30,7 @@ from .const import (
     STRATEGY_SOLAR_ONLY,
     TOKEN_REFRESH_MARGIN,
     USER_AGENT,
+    WALLBOX_CONFIG_READONLY,
 )
 from .errors import HagerCloudAuthError, HagerCloudConnectionError, HagerCloudError
 
@@ -334,7 +335,18 @@ class HagerFlowCloudApi:
         await self.async_sync()
 
     async def async_set_discharge_soc(self, emc_serial: str, wallbox: CloudWallbox, soc: int) -> None:
-        """Entladegrenze "Bis Ladezustand" (%) setzen – Teil-PUT wie beim Boost (chargeFull)."""
-        await self._request(
-            "PUT", wallbox_config_path(emc_serial, wallbox.index), {"soc": max(0, min(100, int(soc)))}
-        )
+        """Entladegrenze "Bis Ladezustand" (%) setzen.
+
+        Dieser Endpunkt lehnt einen Teil-PUT ab ("invalid request payload input").
+        Deshalb lesen-ändern-schreiben: die komplette Wallbox-Konfiguration holen, nur
+        ``soc`` ändern und das ganze Objekt zurückschicken. Reine Messwerte und
+        Statusfelder werden dabei weggelassen, der Rest unverändert gespiegelt.
+        """
+        path = wallbox_config_path(emc_serial, wallbox.index)
+        config = await self._request("GET", path)
+        if not isinstance(config, dict):
+            raise HagerCloudError("Wallbox-Konfiguration konnte nicht gelesen werden")
+        payload = {k: v for k, v in config.items() if k not in WALLBOX_CONFIG_READONLY}
+        payload["soc"] = max(0, min(100, int(soc)))
+        _LOGGER.debug("Setze soc=%s; PUT-Felder: %s", payload["soc"], sorted(payload))
+        await self._request("PUT", path, payload)
