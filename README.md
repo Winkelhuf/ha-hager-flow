@@ -1,4 +1,4 @@
-# Hager flow Modbus Integration for Home Assistant
+# Hager flow Modbus Local + API — Home Assistant Integration
 
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2025.12%2B-blue.svg)](https://www.home-assistant.io/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -7,6 +7,8 @@
 🌐 **Supported System Languages:** `English` | `Deutsch` | `Français` | `Nederlands`
 
 A modern, highly optimized Home Assistant custom integration to monitor and control your **Hager flow Energy Management System (EMS / EMC)** locally over Modbus TCP. It features a strict **Auto-Discovery engine** that automatically maps and dynamically names connected hardware while filtering out offline devices to keep your entities clean.
+
+Reading and most control stay **100 % local** over Modbus. On top of that, an **optional cloud layer** (opt-in, off by default) adds a handful of controls that Hager does **not** expose over Modbus — charging priority, battery-to-car discharge modes, per-wallbox charging strategy, a discharge-down-to-SoC limit, and the emergency power reserve. See [Optional: Cloud Access for Extended Features](#-optional-cloud-access-for-extended-features).
 
 ---
 
@@ -35,7 +37,8 @@ To use this integration, your setup must meet the following minimum requirements
 
 ## 📋 Features
 
-- ⚡ **100% Local Control:** Connects directly via Modbus TCP (Port 502) to your system without relying on cloud APIs.
+- ⚡ **Local-first Control:** Reads and controls your system directly via Modbus TCP (Port 502) — no cloud required for everyday operation.
+- ☁️ **Optional Cloud Extensions (opt-in):** For settings Modbus can't write, an optional cloud layer (myHager login) adds **charging priority**, **battery-to-car discharge** (solar & boost mode), per-wallbox **charging strategy**, **discharge down to a state of charge**, and the **emergency power reserve** — the last two safely coupled (the limit never drops below the reserve). Off by default; if the cloud is down, only these entities become unavailable while Modbus keeps running. See [Optional: Cloud Access](#-optional-cloud-access-for-extended-features).
 - 🔋 **Home Assistant Energy Dashboard Ready:** Automatically derives `kWh` energy sensors (with correct `total_increasing` state class) from every available power reading — no manual Riemann-sum helper entities required. See [Energy Dashboard Support](#-home-assistant-energy-dashboard-support) below.
 - 🌍 **Native Multilingual Support:** Automatically adapts to your Home Assistant system language. Fully translated into **English**, **Deutsch**, **Français**, and **Nederlands** for all entity names, states, and configuration dialogs.
 - 📦 **Multi-Hub Support:** Add multiple Hager flow devices with different IP addresses simultaneously without entity conflicts.
@@ -83,6 +86,15 @@ To use this integration, your setup must meet the following minimum requirements
 
 ### 🌡️ Dynamic SG Ready Sensors (if detected)
 *   **SG Ready Status** (Translated state: *Blocked*, *Normal Operation*, *Start Recommendation*, *Start Command*)
+
+### ☁️ Cloud-only Controls (optional, if cloud access is enabled)
+*   **Charging priority (cloud)** – *Charging station first* / *Battery first*
+*   **Use battery for the car — solar mode / boost mode (cloud)** – two switches, only while "Charging station first" is active
+*   **Charging strategy (cloud)** per wallbox – *Solar surplus only* / *Solar + minimum charge* / *Solar + target time* / *Boost charging*
+*   **Discharge down to state of charge (cloud)** – lower bound follows the emergency reserve; 100 % = no discharge into the car
+*   **Emergency power reserve (cloud)** – in Wh, coupled to the discharge limit
+
+See [Optional: Cloud Access for Extended Features](#-optional-cloud-access-for-extended-features) for details, limits and the safety coupling.
 
 ---
 
@@ -190,14 +202,14 @@ If your language isn't listed, Home Assistant falls back to English.
 ### Option 1: Via HACS (recommended once stable)
 
 Once accepted into the HACS default store, you'll be able to find and install
-**Hager flow Modbus** directly from HACS → Integrations without adding a
+**Hager flow Modbus Local + API** directly from HACS → Integrations without adding a
 custom repository first.
 
 One-Click Installation: <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=Winkelhuf&repository=ha-hager-flow"><img src="https://my.home-assistant.io/badges/hacs_repository.svg" alt="Open in HACS" /></a>
 
 1. In Home Assistant open **HACS → Integrations**.
-2. Search for **Hager flow Modbus**
-3. Install **Hager flow Modbus** and restart Home Assistant.
+2. Search for **Hager flow Modbus Local + API**
+3. Install **Hager flow Modbus Local + API** and restart Home Assistant.
 
 ### Option 2: Via HACS Custom Repository (Current Method)
 Since this integration is not yet part of the HACS default store, you can easily add it manually as a Custom Repository:
@@ -208,7 +220,7 @@ Since this integration is not yet part of the HACS default store, you can easily
    `[https://github.com/Winkelhuf/ha-hager-flow]`
 4. In the **Type** dropdown, select **Integration**.
 5. Click **Add** and wait for HACS to clone the repository.
-6. Find the newly listed **Hager flow Modbus** card, click **Download**, and select the latest version.
+6. Find the newly listed **Hager flow Modbus Local + API** card, click **Download**, and select the latest version.
 7. **Restart** Home Assistant.
 
 ### Option 3: Manual Installation (Private Testing)
@@ -223,7 +235,7 @@ Since this integration is not yet part of the HACS default store, you can easily
 
 1. In Home Assistant, navigate to **Settings** > **Devices & Services**.
 2. Click the **+ Add Integration** button in the bottom right corner.
-3. Search for **"Hager flow Modbus"** and select it.
+3. Search for **"Hager flow Modbus Local + API"** and select it.
 4. Enter the **IP Address** of your local Hager flow system (XEM470) (Default fallback preset: `192.168.70.30`).
 5. Click **Submit**. The integration will automatically fire up the discovery engine and populate your dashboard with all your active local hardware grouped cleanly into distinct devices with beautiful integrated brand logos!
 

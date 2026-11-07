@@ -1,4 +1,4 @@
-# Hager flow Modbus Integration für Home Assistant
+# Hager flow Modbus Local + API — Home-Assistant-Integration
 
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2025.12%2B-blue.svg)](https://www.home-assistant.io/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -7,6 +7,8 @@
 🌐 **Unterstützte Systemsprachen:** `English` | `Deutsch` | `Français` | `Nederlands`
 
 Eine moderne, hochoptimierte Home-Assistant-Integration zur lokalen Überwachung und Steuerung deines **Hager flow Energy Management System (EMS / EMC)** über Modbus TCP. Sie verfügt über eine strikte **Auto-Discovery-Engine**, die angeschlossene Hardware automatisch erkennt, dynamisch benennt und dabei offline Geräte herausfiltert, damit deine Entitäten übersichtlich bleiben.
+
+Lesen und der Großteil der Steuerung bleiben **100 % lokal** über Modbus. Darüber hinaus gibt es eine **optionale Cloud-Ebene** (opt-in, standardmäßig aus) für Funktionen, die Hager **nicht** über Modbus beschreibbar macht – Ladepriorität, Entladung des Speichers ins Auto, Ladestrategie je Wallbox, Entladegrenze „bis Ladezustand" und die Notstromreserve. Siehe [Optional: Cloud-Zugang für erweiterte Funktionen](#-optional-cloud-zugang-für-erweiterte-funktionen).
 
 ---
 
@@ -35,7 +37,8 @@ Um diese Integration zu nutzen, muss dein Setup folgende Mindestanforderungen er
 
 ## 📋 Funktionen
 
-- ⚡ **100 % lokale Steuerung:** Verbindet sich direkt per Modbus TCP (Port 502) mit deinem System, ganz ohne Cloud-APIs.
+- ⚡ **Lokal zuerst:** Liest und steuert dein System direkt per Modbus TCP (Port 502) – für den Alltagsbetrieb ist keine Cloud nötig.
+- ☁️ **Optionale Cloud-Erweiterungen (opt-in):** Für Einstellungen, die Modbus nicht schreiben kann, ergänzt eine optionale Cloud-Ebene (myHager-Login) die **Ladepriorität**, die **Entladung ins Auto** (Solar- & Boost-Modus), die **Ladestrategie** je Wallbox, **Entladen bis Ladezustand** und die **Notstromreserve** – die letzten beiden sicher gekoppelt (das Limit fällt nie unter die Reserve). Standardmäßig aus; fällt die Cloud aus, sind nur diese Entitäten betroffen, Modbus läuft weiter. Siehe [Optional: Cloud-Zugang](#-optional-cloud-zugang-für-erweiterte-funktionen).
 - 🔋 **Bereit für das Home Assistant Energie-Dashboard:** Leitet automatisch `kWh`-Energiesensoren (mit korrekter `total_increasing`-State-Class) aus jedem verfügbaren Leistungswert ab – keine manuellen Riemann-Summen-Hilfssensoren nötig. Siehe [Energie-Dashboard-Unterstützung](#-unterstützung-für-das-home-assistant-energie-dashboard) weiter unten.
 - 🌍 **Native Mehrsprachigkeit:** Passt sich automatisch an deine Home-Assistant-Systemsprache an. Vollständig übersetzt in **Englisch**, **Deutsch**, **Französisch** und **Niederländisch** für alle Entitätsnamen, Zustände und Konfigurationsdialoge.
 - 📦 **Multi-Hub-Unterstützung:** Füge mehrere Hager-flow-Geräte mit unterschiedlichen IP-Adressen gleichzeitig hinzu, ohne Entitätskonflikte.
@@ -83,6 +86,15 @@ Um diese Integration zu nutzen, muss dein Setup folgende Mindestanforderungen er
 
 ### 🌡️ Dynamische SG-Ready-Sensoren (falls erkannt)
 *   **SG-Ready-Status** (Übersetzter Zustand: *Gesperrt*, *Normalbetrieb*, *Einschaltempfehlung*, *Einschaltbefehl*)
+
+### ☁️ Nur-Cloud-Steuerungen (optional, bei aktiviertem Cloud-Zugang)
+*   **Ladepriorität (Cloud)** – *Ladestation zuerst* / *Batterie zuerst*
+*   **Speicher fürs Auto – Solar- / Boost-Modus (Cloud)** – zwei Schalter, nur bei „Ladestation zuerst"
+*   **Ladestrategie (Cloud)** je Wallbox – *PV-Überschussladen* / *PV + Mindestladung* / *PV + Zieltermin* / *Boostladen*
+*   **Entladen bis Ladezustand (Cloud)** – Untergrenze folgt der Notstromreserve; 100 % = keine Entladung ins Auto
+*   **Notstromreserve (Cloud)** – in Wh, gekoppelt ans Entladelimit
+
+Details, Grenzen und die Sicherheitskopplung siehe [Optional: Cloud-Zugang für erweiterte Funktionen](#-optional-cloud-zugang-für-erweiterte-funktionen).
 
 ---
 
@@ -190,14 +202,14 @@ Ist deine Sprache nicht aufgeführt, verwendet Home Assistant automatisch Englis
 ### Option 1: Über HACS (empfohlen, sobald stabil)
 
 Sobald die Integration in den HACS-Standard-Store aufgenommen wurde, kannst du
-**Hager flow Modbus** direkt über HACS → Integrationen finden und installieren,
+**Hager flow Modbus Local + API** direkt über HACS → Integrationen finden und installieren,
 ohne vorher ein eigenes Repository hinzuzufügen.
 
 Ein-Klick-Installation: <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=Winkelhuf&repository=ha-hager-flow"><img src="https://my.home-assistant.io/badges/hacs_repository.svg" alt="Open in HACS" /></a>
 
 1. Öffne in Home Assistant **HACS → Integrationen**.
-2. Suche nach **Hager flow Modbus**.
-3. Installiere **Hager flow Modbus** und starte Home Assistant neu.
+2. Suche nach **Hager flow Modbus Local + API**.
+3. Installiere **Hager flow Modbus Local + API** und starte Home Assistant neu.
 
 ### Option 2: Über ein HACS-Custom-Repository (aktuelle Methode)
 Da diese Integration noch nicht Teil des HACS-Standard-Stores ist, kannst du sie einfach manuell als Custom Repository hinzufügen:
@@ -208,7 +220,7 @@ Da diese Integration noch nicht Teil des HACS-Standard-Stores ist, kannst du sie
    `[https://github.com/Winkelhuf/ha-hager-flow]`
 4. Wähle im Dropdown **Typ** die Option **Integration**.
 5. Klicke auf **Hinzufügen** und warte, bis HACS das Repository geklont hat.
-6. Suche die neu gelistete Karte **Hager flow Modbus**, klicke auf **Herunterladen** und wähle die neueste Version.
+6. Suche die neu gelistete Karte **Hager flow Modbus Local + API**, klicke auf **Herunterladen** und wähle die neueste Version.
 7. **Starte** Home Assistant neu.
 
 ### Option 3: Manuelle Installation (privates Testen)
