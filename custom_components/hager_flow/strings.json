@@ -213,9 +213,10 @@
       }
     },
     "error": {
-      "invalid_auth": "Login failed. Please check e-mail and password (an account with two-factor authentication is not supported).",
+      "invalid_auth": "Login failed. Please check e-mail and password – details are in the Home Assistant log.",
       "cloud_cannot_connect": "The Hager flow cloud could not be reached.",
-      "no_installations": "No installation found in this account."
+      "no_installations": "No installation found in this account.",
+      "cloud_access_denied": "Login worked, but the cloud refused access to the installation list – details are in the Home Assistant log."
     }
   }
 }

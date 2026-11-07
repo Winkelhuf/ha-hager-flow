@@ -213,9 +213,10 @@
       }
     },
     "error": {
-      "invalid_auth": "Inloggen mislukt. Controleer e-mail en wachtwoord (accounts met tweestapsverificatie worden niet ondersteund).",
+      "invalid_auth": "Inloggen mislukt. Controleer e-mail en wachtwoord – details staan in het Home Assistant-logboek.",
       "cloud_cannot_connect": "De Hager flow cloud is niet bereikbaar.",
-      "no_installations": "Geen installatie gevonden in dit account."
+      "no_installations": "Geen installatie gevonden in dit account.",
+      "cloud_access_denied": "Inloggen gelukt, maar de cloud weigert toegang tot de installatielijst – details staan in het Home Assistant-logboek."
     }
   }
 }

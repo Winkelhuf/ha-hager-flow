@@ -213,9 +213,10 @@
       }
     },
     "error": {
-      "invalid_auth": "Échec de la connexion. Vérifiez l'e-mail et le mot de passe (les comptes avec authentification à deux facteurs ne sont pas pris en charge).",
+      "invalid_auth": "Échec de la connexion. Vérifiez l'e-mail et le mot de passe – détails dans le journal de Home Assistant.",
       "cloud_cannot_connect": "Le cloud Hager flow est injoignable.",
-      "no_installations": "Aucune installation trouvée dans ce compte."
+      "no_installations": "Aucune installation trouvée dans ce compte.",
+      "cloud_access_denied": "Connexion réussie, mais le cloud refuse l'accès à la liste des installations – détails dans le journal de Home Assistant."
     }
   }
 }

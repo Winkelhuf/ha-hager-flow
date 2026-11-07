@@ -1,6 +1,7 @@
 """Config flow für die Hager flow Integration."""
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 import voluptuous as vol
@@ -30,6 +31,8 @@ from .const import (
     CONF_CLOUD_REAUTH_TOKEN,
     DOMAIN,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 DATA_SCHEMA = vol.Schema(
     {
@@ -110,13 +113,23 @@ class HagerFlowOptionsFlow(config_entries.OptionsFlow):
             )
             try:
                 await api.async_login()
-                installations = await api.async_get_installations()
-                chosen = await self._async_match_installation(api, installations)
-            except HagerCloudAuthError:
+            except HagerCloudAuthError as err:
+                _LOGGER.warning("Hager flow Cloud: Anmeldung fehlgeschlagen: %s", err)
                 errors["base"] = "invalid_auth"
-            except HagerCloudError:
+            except HagerCloudError as err:
+                _LOGGER.warning("Hager flow Cloud: Login nicht erreichbar: %s", err)
                 errors["base"] = "cloud_cannot_connect"
-            else:
+            if not errors:
+                try:
+                    installations = await api.async_get_installations()
+                    chosen = await self._async_match_installation(api, installations)
+                except HagerCloudAuthError as err:
+                    _LOGGER.warning("Hager flow Cloud: Anlagenliste verweigert: %s", err)
+                    errors["base"] = "cloud_access_denied"
+                except HagerCloudError as err:
+                    _LOGGER.warning("Hager flow Cloud: Anlagenliste fehlgeschlagen: %s", err)
+                    errors["base"] = "cloud_cannot_connect"
+            if not errors:
                 if not installations:
                     errors["base"] = "no_installations"
                 elif chosen is not None:

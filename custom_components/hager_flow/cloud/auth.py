@@ -164,16 +164,26 @@ async def async_login(email: str, password: str) -> CloudTokens:
     try:
         async with ClientSession(headers=headers, cookie_jar=CookieJar(unsafe=True, quote_cookie=False)) as session:
             jar: dict[tuple[str, str, str], _RawCookie] = {}
+            trail: list[str] = []
+
+            def note(method: str, url: str, status: int) -> None:
+                parsed = urlparse(url)
+                trail.append(f"{method} {parsed.netloc}{parsed.path} -> {status}")
+
+            def fail(reason: str) -> HagerCloudAuthError:
+                return HagerCloudAuthError(f"{reason} | Ablauf: " + " ; ".join(trail[-8:]))
 
             async def get(url: str):
                 async with session.get(url, headers=_cookie_header(session, url, jar), allow_redirects=False) as resp:
                     _store_raw_cookies(str(resp.url), resp.headers.getall("Set-Cookie", []), jar)
+                    note("GET", str(resp.url), resp.status)
                     return resp.status, resp.headers.get("Location"), str(resp.url), await resp.text()
 
             async def post(url: str, data: dict[str, str], extra: dict[str, str] | None = None):
                 hdrs = {**(extra or {}), **_cookie_header(session, url, jar)}
                 async with session.post(url, data=data, headers=hdrs, allow_redirects=False) as resp:
                     _store_raw_cookies(str(resp.url), resp.headers.getall("Set-Cookie", []), jar)
+                    note("POST", str(resp.url), resp.status)
                     return resp.status, resp.headers.get("Location"), str(resp.url), await resp.text()
 
             # 1. Bis zur Login-Maske von login.hager.com folgen
@@ -190,18 +200,18 @@ async def async_login(email: str, password: str) -> CloudTokens:
             elif match := LOGIN_URL_RE.search(html_module.unescape(body)):
                 login_url = match.group(0)
             else:
-                raise HagerCloudAuthError("Login-Maske von login.hager.com nicht gefunden")
+                raise fail("Login-Maske von login.hager.com nicht gefunden")
 
             # 2. Zugangsdaten absenden
             status, location, url, _ = await post(
                 login_url,
-                {"email": email, "password": password},
+                {"email": email.strip(), "password": password},
                 {"Origin": "https://login.hager.com", "Referer": login_url},
             )
             if status not in (302, 303) or not location:
-                raise HagerCloudAuthError("Unerwartete Antwort der Login-Maske")
+                raise fail("Unerwartete Antwort der Login-Maske")
             if "/interaction/" in location and "/login" in location:
-                raise HagerCloudAuthError("E-Mail oder Passwort falsch")
+                raise fail("E-Mail oder Passwort falsch")
             url = urljoin(url, location)
 
             # 3. SAML-Weiterleitungen bis zum Token folgen
@@ -212,9 +222,7 @@ async def async_login(email: str, password: str) -> CloudTokens:
                 if pending is None:
                     path = urlparse(url).path
                     if "/interaction/" in path and ("/consent" in path or "/mfa/" in path):
-                        raise HagerCloudAuthError(
-                            "Das myHager-Konto verlangt eine Bestätigung im Browser (Einwilligung/MFA)"
-                        )
+                        raise fail("Das myHager-Konto verlangt eine Bestätigung im Browser (Einwilligung/MFA)")
                     status, location, current, body = await get(url)
                     if status in _REDIRECTS and location:
                         url = urljoin(current, location)
@@ -236,7 +244,7 @@ async def async_login(email: str, password: str) -> CloudTokens:
                 if redirect := _html_redirect(body):
                     url = urljoin(current, redirect)
                     continue
-                raise HagerCloudAuthError("Unerwartete Antwort im Login-Ablauf")
+                raise fail("Unerwartete Antwort im Login-Ablauf")
     except ClientError as err:
         raise HagerCloudConnectionError("myHager-Login nicht erreichbar") from err
 

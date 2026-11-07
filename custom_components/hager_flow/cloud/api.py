@@ -231,7 +231,20 @@ class HagerFlowCloudApi:
         self._set_tokens(await async_login(self._email, self._password))
 
     async def async_get_installations(self) -> list[dict[str, Any]]:
-        return normalize_record_table(await self._request("GET", f"{INSTALLATIONS_BASE_URL}/installations"))
+        """Anlagen des Kontos. Installateur-Konten bekommen ohne Parameter teils 400/403 –
+        dann dieselbe Abfrage wie das Portal verwenden."""
+        base = f"{INSTALLATIONS_BASE_URL}/installations"
+        try:
+            rows = normalize_record_table(await self._request("GET", base))
+            if rows:
+                return rows
+        except HagerCloudError as err:
+            if isinstance(err, HagerCloudConnectionError):
+                raise
+            _LOGGER.debug("Anlagenliste ohne Parameter abgelehnt (%s) – Portal-Variante", err)
+        return normalize_record_table(
+            await self._request("GET", f"{base}?connect=installationHistory&limit=50&offset=0&sort=-createdAt")
+        )
 
     async def async_get_emc_link(self, installation_id: int | None = None) -> dict[str, Any] | None:
         """Device-Link des EMC (enthält die Seriennummer als deviceId)."""

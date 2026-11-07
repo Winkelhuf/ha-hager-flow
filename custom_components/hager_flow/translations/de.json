@@ -213,9 +213,10 @@
       }
     },
     "error": {
-      "invalid_auth": "Anmeldung fehlgeschlagen. Bitte E-Mail und Passwort prüfen (Konten mit Zwei-Faktor-Anmeldung werden nicht unterstützt).",
+      "invalid_auth": "Anmeldung fehlgeschlagen. Bitte E-Mail und Passwort prüfen – Details stehen im Home-Assistant-Protokoll.",
       "cloud_cannot_connect": "Die Hager flow Cloud ist nicht erreichbar.",
-      "no_installations": "In diesem Konto wurde keine Anlage gefunden."
+      "no_installations": "In diesem Konto wurde keine Anlage gefunden.",
+      "cloud_access_denied": "Anmeldung erfolgreich, aber die Cloud verweigert den Zugriff auf die Anlagenliste – Details stehen im Home-Assistant-Protokoll."
     }
   }
 }
