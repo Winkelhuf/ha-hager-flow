@@ -1,5 +1,5 @@
 {
-  "name": "Hager flow Modbus",
+  "name": "Hager flow Modbus Local + API",
   "homeassistant": "2025.12.0",
   "hacs": "2.0.5"
 }
