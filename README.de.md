@@ -111,12 +111,12 @@ Modbus bleibt die Hauptquelle – alles wird weiterhin lokal gelesen. Einige Ein
 | Speicher fürs Auto im Solarmodus (Cloud) ¹ | EMC | Speichermanagement → Solarmodus |
 | Speicher fürs Auto im Boost-Modus (Cloud) ¹ | EMC | Speichermanagement → Boost-Modus |
 | Ladestrategie (Cloud) – *PV-Überschussladen / PV + Mindestladung / PV + Zieltermin / Boostladen* | Wallbox | Wallbox → Ladestrategie |
-| Entladen bis Ladezustand (Cloud) – 0–100 % ² | Wallbox | my.e3dc.com → Wallbox → Bis Ladezustand |
+| Entladen bis Ladezustand (Cloud) ² | Wallbox | my.e3dc.com → Wallbox → Bis Ladezustand |
 | Notstromreserve (Cloud) – in Wh ³ | EMC | Konfiguration → Speicher → Notstrom → Reserve |
 
 ¹ Nur mit der Ladepriorität **„Ladestation zuerst“** nutzbar. Bei „Batterie zuerst“ würde das System die Änderung ablehnen – die beiden Schalter sind dann ausgegraut (nicht verfügbar).
 
-² Bis zu diesem Ladezustand entlädt der Speicher ins Auto (0 % = keine Grenze, z. B. 60 % für die Nacht behalten). Die Einstellung gibt es nur im E3/DC-Portal, nicht im flow-Portal. Sie ist nur nutzbar, wenn die Entladung aktiv ist (siehe ¹); andernfalls ist sie ausgegraut.
+² Bis zu diesem Ladezustand entlädt der Speicher ins Auto. Nur nutzbar, wenn die Entladung aktiv ist (siehe ¹), sonst ausgegraut. **Wertebereich: von der Untergrenze (Reserve-% + 10, siehe ³) bis 100 %.** **0 ist nicht möglich** – das würde den Speicher unter die Notstromreserve entladen; ein kleinerer Wert wird automatisch auf die Untergrenze angehoben. **100 % bedeutet: keine Entladung ins Auto** – der Speicher bleibt vollständig dem Haus vorbehalten. Die Einstellung gibt es nur im E3/DC-Portal, nicht im flow-Portal.
 
 ³ Energie, die der Speicher für den Notstromfall zurückhält (in Wh). **Gekoppelt ans Entladelimit:** Das Limit kann nie unter die Reserve fallen und liegt immer mindestens 10 % darüber. Die Untergrenze des Limits ergibt sich aus `Reserve ÷ (Anzahl Batteriemodule × 3000 Wh)` + 10 %. Erhöhst du die Reserve, zieht das Limit automatisch nach. Attribute der Entität zeigen Kapazität, Reserve-% und die errechnete Untergrenze.
 

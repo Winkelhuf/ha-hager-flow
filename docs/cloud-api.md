@@ -118,3 +118,8 @@ unter die Notstromreserve fallen und soll immer **10 % darüber** liegen. Umrech
 `reserve% = emergencyPowerCapacityReserve / (batDcbCount × 3000) × 100`,
 Untergrenze des Limits = `ceil(reserve%) + 10` (auf 100 gedeckelt). Wird die Reserve erhöht,
 zieht das Limit automatisch nach.
+
+Verhalten an den Rändern: **0 ist nicht einstellbar** (würde unter die Reserve gehen; ein
+kleinerer Wert wird auf die Untergrenze angehoben). **100 % = keine Entladung ins Auto** –
+der Speicher bleibt dem Haus vorbehalten. Der Wert bewegt sich also immer im Fenster
+`[Reserve% + 10 … 100]`.
