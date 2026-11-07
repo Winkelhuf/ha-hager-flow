@@ -158,12 +158,64 @@
     "switch": {
       "boostmodus": {
         "name": "Boostmodus"
+      },
+      "speicher_fuers_auto_solar": {
+        "name": "Speicher fürs Auto im Solarmodus (Cloud)"
+      },
+      "speicher_fuers_auto_boost": {
+        "name": "Speicher fürs Auto im Boost-Modus (Cloud)"
+      }
+    },
+    "select": {
+      "ladeprioritaet": {
+        "name": "Ladepriorität (Cloud)",
+        "state": {
+          "car_first": "Auto zuerst",
+          "battery_first": "Batterie zuerst"
+        }
+      },
+      "ladestrategie": {
+        "name": "Ladestrategie (Cloud)",
+        "state": {
+          "solar_only": "PV-Überschussladen",
+          "solar_minimum": "PV + Mindestladung",
+          "solar_delayed": "PV + Zieltermin",
+          "immediate": "Sofortladen"
+        }
       }
     }
   },
   "exceptions": {
     "boost_cooldown": {
       "message": "Die Wallbox verarbeitet noch den letzten Befehl. Bitte warte noch {seconds} Sekunden auf die Cloud-Synchronisation."
+    },
+    "cloud_write_failed": {
+      "message": "Schreiben in die Hager flow Cloud fehlgeschlagen: {error}"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Cloud-Zugang (optional)",
+        "description": "Modbus bleibt die Hauptquelle. Einstellungen, die per Modbus nicht beschreibbar sind (Ladepriorität, Speicher fürs Auto, Ladestrategie der Wallbox), können zusätzlich über die inoffizielle Hager-flow-Cloud-API geändert werden. Verwende dein flow.hager.com- bzw. myHager-Login. Experimentell – Hager kann diese API jederzeit ändern.",
+        "data": {
+          "cloud_enabled": "Cloud-Zugang aktivieren",
+          "cloud_email": "myHager-E-Mail",
+          "cloud_password": "myHager-Passwort"
+        }
+      },
+      "installation": {
+        "title": "Anlage auswählen",
+        "description": "Dein Konto enthält mehrere Anlagen. Welche gehört zu diesem Hager flow System?",
+        "data": {
+          "cloud_installation": "Anlage"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Anmeldung fehlgeschlagen. Bitte E-Mail und Passwort prüfen (Konten mit Zwei-Faktor-Anmeldung werden nicht unterstützt).",
+      "cloud_cannot_connect": "Die Hager flow Cloud ist nicht erreichbar.",
+      "no_installations": "In diesem Konto wurde keine Anlage gefunden."
     }
   }
 }

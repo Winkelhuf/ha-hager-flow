@@ -158,12 +158,64 @@
     "switch": {
       "boostmodus": {
         "name": "Boostmodus"
+      },
+      "speicher_fuers_auto_solar": {
+        "name": "Batterij voor de auto in zonnemodus (cloud)"
+      },
+      "speicher_fuers_auto_boost": {
+        "name": "Batterij voor de auto in boostmodus (cloud)"
+      }
+    },
+    "select": {
+      "ladeprioritaet": {
+        "name": "Laadprioriteit (cloud)",
+        "state": {
+          "car_first": "Auto eerst",
+          "battery_first": "Batterij eerst"
+        }
+      },
+      "ladestrategie": {
+        "name": "Laadstrategie (cloud)",
+        "state": {
+          "solar_only": "Alleen zonne-overschot",
+          "solar_minimum": "Zon + minimale lading",
+          "solar_delayed": "Zon + doeltijd",
+          "immediate": "Direct laden"
+        }
       }
     }
   },
   "exceptions": {
     "boost_cooldown": {
       "message": "De wallbox verwerkt nog de laatste opdracht. Wacht nog {seconds} seconden op de cloudsynchronisatie."
+    },
+    "cloud_write_failed": {
+      "message": "Schrijven naar de Hager flow cloud mislukt: {error}"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Cloudtoegang (optioneel)",
+        "description": "Modbus blijft de hoofdbron. Instellingen die niet via Modbus beschrijfbaar zijn (laadprioriteit, batterij voor de auto, laadstrategie van de laadpaal) kunnen extra via de onofficiële Hager flow cloud-API worden gewijzigd. Gebruik je flow.hager.com / myHager-login. Experimenteel – Hager kan deze API op elk moment wijzigen.",
+        "data": {
+          "cloud_enabled": "Cloudtoegang inschakelen",
+          "cloud_email": "myHager-e-mail",
+          "cloud_password": "myHager-wachtwoord"
+        }
+      },
+      "installation": {
+        "title": "Installatie kiezen",
+        "description": "Je account bevat meerdere installaties. Welke hoort bij dit Hager flow systeem?",
+        "data": {
+          "cloud_installation": "Installatie"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Inloggen mislukt. Controleer e-mail en wachtwoord (accounts met tweestapsverificatie worden niet ondersteund).",
+      "cloud_cannot_connect": "De Hager flow cloud is niet bereikbaar.",
+      "no_installations": "Geen installatie gevonden in dit account."
     }
   }
 }

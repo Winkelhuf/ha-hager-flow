@@ -13,6 +13,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.exceptions import ServiceValidationError
 
+from .cloud.const import CFG_BATTERY_TO_CAR_BOOST, CFG_BATTERY_TO_CAR_SOLAR
+from .cloud.entity import HagerFlowCloudEntity, emc_device_info
 from .const import DOMAIN
 from .entity.base import HagerFlowEntity
 
@@ -31,7 +33,46 @@ async def async_setup_entry(
         for slave, wb_name in coordinator.discovered_wallboxes.items():
             entities.append(HagerFlowWallboxBoostSwitch(coordinator, slave, wb_name, entry.entry_id))
 
+    # Optionaler Cloud-Zugang: Einstellungen, die per Modbus nicht beschreibbar sind
+    cloud = entry.runtime_data.cloud
+    if cloud is not None:
+        entities.extend(
+            HagerFlowCloudConfigSwitch(cloud, entry.entry_id, key, field, icon)
+            for key, field, icon in CLOUD_CONFIG_SWITCHES
+        )
+
     async_add_entities(entities)
+
+
+# (translation_key, Feld in /installations/{id}/config, Icon)
+CLOUD_CONFIG_SWITCHES: tuple[tuple[str, str, str], ...] = (
+    ("speicher_fuers_auto_solar", CFG_BATTERY_TO_CAR_SOLAR, "mdi:home-battery"),
+    ("speicher_fuers_auto_boost", CFG_BATTERY_TO_CAR_BOOST, "mdi:battery-arrow-up"),
+)
+
+
+class HagerFlowCloudConfigSwitch(HagerFlowCloudEntity, SwitchEntity):
+    """Ein Ja/Nein-Feld der Anlagen-Konfiguration in der Cloud (Speichermanagement)."""
+
+    def __init__(self, coordinator, entry_id: str, key: str, field: str, icon: str) -> None:
+        super().__init__(coordinator, entry_id, key, emc_device_info(entry_id))
+        self._field = field
+        self._attr_icon = icon
+
+    @property
+    def is_on(self) -> bool | None:
+        value = (self.coordinator.data.config if self.coordinator.data else {}).get(self._field)
+        return None if value is None else bool(value)
+
+    async def _async_set(self, value: bool) -> None:
+        config = self.coordinator.data.config
+        await self._async_write(lambda: self.coordinator.api.async_set_config(config, {self._field: value}))
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self._async_set(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self._async_set(False)
 
 class HagerFlowWallboxBoostSwitch(HagerFlowEntity, SwitchEntity):
     """Schalter zur Steuerung des Boostmodus einer Witty Wallbox mit Benutzer-Feedback."""

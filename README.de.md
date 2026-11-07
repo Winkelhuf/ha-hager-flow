@@ -99,6 +99,23 @@ Um schnelles Hin-und-her-Schalten (bei dem der Schalter wartend auf die Cloud hi
 
 ---
 
+## ☁️ Optional: Cloud-Zugang für erweiterte Funktionen
+
+Modbus bleibt die Hauptquelle – alles wird weiterhin lokal gelesen. Einige Einstellungen sind per Modbus aber **nicht beschreibbar**. Dafür lässt sich zusätzlich der Cloud-Zugang des flow-Webportals aktivieren:
+
+**Einstellungen → Geräte & Dienste → Hager flow → Konfigurieren** → *Cloud-Zugang aktivieren*, myHager-E-Mail und -Passwort eingeben. Die Anlage wird über die per Modbus gelesene EMC-Seriennummer automatisch erkannt.
+
+| Entität | Gerät | Entspricht im Portal |
+|---|---|---|
+| Ladepriorität (Cloud) – *Auto zuerst / Batterie zuerst* | EMC | Einstellungen → Solar Priorität |
+| Speicher fürs Auto im Solarmodus (Cloud) | EMC | Speichermanagement → Solarmodus |
+| Speicher fürs Auto im Boost-Modus (Cloud) | EMC | Speichermanagement → Boost-Modus |
+| Ladestrategie (Cloud) – *PV-Überschussladen / PV + Mindestladung / PV + Zieltermin / Sofortladen* | Wallbox | Wallbox → Ladestrategie |
+
+Die aktuellen Werte von Ladepriorität und Entladung lesen weiterhin die Modbus-Sensoren; die Cloud-Entitäten fragen die Cloud jede Minute ab.
+
+> ⚠️ **Experimentell und inoffiziell.** Es ist die undokumentierte API hinter flow.hager.com; Hager kann sie jederzeit ändern. Fällt die Cloud aus, sind nur die Cloud-Entitäten nicht verfügbar – Modbus läuft weiter. Konten mit Zwei-Faktor-Anmeldung werden nicht unterstützt. Details zu den Endpunkten: [docs/cloud-api.md](docs/cloud-api.md). Login-Ablauf übernommen aus [hebrru/Hager-local](https://github.com/hebrru/Hager-local) (MIT).
+
 ## 🔋 Unterstützung für das Home Assistant Energie-Dashboard
 
 Der Hager-flow-EMC meldet die meisten Größen als momentane **Leistung** (W), nicht als kumulative **Energie** (kWh) — das Home Assistant Energie-Dashboard benötigt jedoch Letzteres. Diese Integration schließt diese Lücke automatisch, ohne dass du manuell `utility_meter`- oder Riemann-Summen-Hilfssensoren einrichten musst.

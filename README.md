@@ -99,6 +99,23 @@ To prevent rapid toggle-looping (where the switch jumps back and forth while wai
 
 ---
 
+## ☁️ Optional: Cloud Access for Extended Features
+
+Modbus stays the main data source – everything is still read locally. Some settings, however, are **not writable via Modbus**. For those you can additionally enable the cloud access used by the flow web portal:
+
+**Settings → Devices & services → Hager flow → Configure** → *Enable cloud access*, enter your myHager e-mail and password. The installation is matched automatically via the EMC serial number read over Modbus.
+
+| Entity | Device | Portal equivalent |
+|---|---|---|
+| Charging priority (cloud) – *Car first / Battery first* | EMC | Settings → Solar priority |
+| Use battery for the car in solar mode (cloud) | EMC | Storage management → Solar mode |
+| Use battery for the car in boost mode (cloud) | EMC | Storage management → Boost mode |
+| Charging strategy (cloud) – *Solar surplus only / Solar + minimum charge / Solar + target time / Immediate charging* | Wallbox | Wallbox → Charging strategy |
+
+The Modbus sensors still report the current priority and discharge state; the cloud entities poll the cloud once a minute.
+
+> ⚠️ **Experimental and unofficial.** This is the undocumented API behind flow.hager.com and Hager may change it at any time. If the cloud is down, only the cloud entities become unavailable – Modbus keeps running. Accounts with two-factor authentication are not supported. Endpoint details: [docs/cloud-api.md](docs/cloud-api.md). Login flow adapted from [hebrru/Hager-local](https://github.com/hebrru/Hager-local) (MIT).
+
 ## 🔋 Home Assistant Energy Dashboard Support
 
 The Hager flow EMC reports most quantities as instantaneous **power** (W), not cumulative **energy** (kWh) — but the Home Assistant Energy Dashboard needs the latter. This integration bridges that gap automatically, without requiring you to set up any `utility_meter` or Riemann-sum helper entities by hand.
