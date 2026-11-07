@@ -23,7 +23,7 @@
       "power_prioritaet_ziel": {
         "name": "Ladepriorität",
         "state": {
-          "car_first": "Auto zuerst",
+          "car_first": "Ladestation zuerst",
           "battery_first": "Batterie zuerst"
         }
       },
@@ -158,12 +158,79 @@
     "switch": {
       "boostmodus": {
         "name": "Boostmodus"
+      },
+      "speicher_fuers_auto_solar": {
+        "name": "Speicher fürs Auto im Solarmodus (Cloud)"
+      },
+      "speicher_fuers_auto_boost": {
+        "name": "Speicher fürs Auto im Boost-Modus (Cloud)"
+      }
+    },
+    "select": {
+      "ladeprioritaet": {
+        "name": "Ladepriorität (Cloud)",
+        "state": {
+          "car_first": "Ladestation zuerst",
+          "battery_first": "Batterie zuerst"
+        }
+      },
+      "ladestrategie": {
+        "name": "Ladestrategie (Cloud)",
+        "state": {
+          "solar_only": "PV-Überschussladen",
+          "solar_minimum": "PV + Mindestladung",
+          "solar_delayed": "PV + Zieltermin",
+          "immediate": "Boostladen"
+        }
+      }
+    },
+    "number": {
+      "entladen_bis_ladezustand": {
+        "name": "Entladen bis Ladezustand (Cloud)"
+      },
+      "notstromreserve": {
+        "name": "Notstromreserve (Cloud)"
       }
     }
   },
   "exceptions": {
     "boost_cooldown": {
       "message": "Die Wallbox verarbeitet noch den letzten Befehl. Bitte warte noch {seconds} Sekunden auf die Cloud-Synchronisation."
+    },
+    "cloud_write_failed": {
+      "message": "Schreiben in die Hager flow Cloud fehlgeschlagen: {error}"
+    },
+    "cloud_cooldown": {
+      "message": "Die Cloud verarbeitet noch die letzte Änderung. Bitte warte noch {seconds} Sekunden."
+    },
+    "cloud_needs_car_first": {
+      "message": "Speicher fürs Auto ist nur mit der Ladepriorität „Ladestation zuerst“ möglich."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Cloud-Zugang (optional)",
+        "description": "Modbus bleibt die Hauptquelle. Einstellungen, die per Modbus nicht beschreibbar sind (Ladepriorität, Speicher fürs Auto, Ladestrategie der Wallbox), können zusätzlich über die inoffizielle Hager-flow-Cloud-API geändert werden. Verwende dein flow.hager.com- bzw. myHager-Login. Experimentell – Hager kann diese API jederzeit ändern.",
+        "data": {
+          "cloud_enabled": "Cloud-Zugang aktivieren",
+          "cloud_email": "myHager-E-Mail",
+          "cloud_password": "myHager-Passwort"
+        }
+      },
+      "installation": {
+        "title": "Anlage auswählen",
+        "description": "Dein Konto enthält mehrere Anlagen. Welche gehört zu diesem Hager flow System?",
+        "data": {
+          "cloud_installation": "Anlage"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Anmeldung fehlgeschlagen. Bitte E-Mail und Passwort prüfen – Details stehen im Home-Assistant-Protokoll.",
+      "cloud_cannot_connect": "Die Hager flow Cloud ist nicht erreichbar.",
+      "no_installations": "In diesem Konto wurde keine Anlage gefunden.",
+      "cloud_access_denied": "Anmeldung erfolgreich, aber die Cloud verweigert den Zugriff auf die Anlagenliste – Details stehen im Home-Assistant-Protokoll."
     }
   }
 }

@@ -23,7 +23,7 @@
       "power_prioritaet_ziel": {
         "name": "Charging Priority",
         "state": {
-          "car_first": "Car First",
+          "car_first": "Charging station first",
           "battery_first": "Battery First"
         }
       },
@@ -158,12 +158,79 @@
     "switch": {
       "boostmodus": {
         "name": "Boost Mode"
+      },
+      "speicher_fuers_auto_solar": {
+        "name": "Use battery for the car in solar mode (cloud)"
+      },
+      "speicher_fuers_auto_boost": {
+        "name": "Use battery for the car in boost mode (cloud)"
+      }
+    },
+    "select": {
+      "ladeprioritaet": {
+        "name": "Charging priority (cloud)",
+        "state": {
+          "car_first": "Charging station first",
+          "battery_first": "Battery first"
+        }
+      },
+      "ladestrategie": {
+        "name": "Charging strategy (cloud)",
+        "state": {
+          "solar_only": "Solar surplus only",
+          "solar_minimum": "Solar + minimum charge",
+          "solar_delayed": "Solar + target time",
+          "immediate": "Boost charging"
+        }
+      }
+    },
+    "number": {
+      "entladen_bis_ladezustand": {
+        "name": "Discharge down to state of charge (Cloud)"
+      },
+      "notstromreserve": {
+        "name": "Emergency power reserve (Cloud)"
       }
     }
   },
   "exceptions": {
     "boost_cooldown": {
       "message": "The wallbox is still processing the last command. Please wait another {seconds} seconds for cloud synchronization."
+    },
+    "cloud_write_failed": {
+      "message": "Writing to the Hager flow cloud failed: {error}"
+    },
+    "cloud_cooldown": {
+      "message": "The cloud is still processing the last change. Please wait another {seconds} seconds."
+    },
+    "cloud_needs_car_first": {
+      "message": "Using the battery for the car is only possible with charging priority \"Charging station first\"."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Cloud access (optional)",
+        "description": "Modbus stays the main data source. Settings that cannot be written via Modbus (charging priority, battery use for the car, wallbox charging strategy) can additionally be changed through the unofficial Hager flow cloud API. Use your flow.hager.com / myHager login. Experimental – Hager may change this API at any time.",
+        "data": {
+          "cloud_enabled": "Enable cloud access",
+          "cloud_email": "myHager e-mail",
+          "cloud_password": "myHager password"
+        }
+      },
+      "installation": {
+        "title": "Select installation",
+        "description": "Your account contains several installations. Which one belongs to this Hager flow system?",
+        "data": {
+          "cloud_installation": "Installation"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Login failed. Please check e-mail and password – details are in the Home Assistant log.",
+      "cloud_cannot_connect": "The Hager flow cloud could not be reached.",
+      "no_installations": "No installation found in this account.",
+      "cloud_access_denied": "Login worked, but the cloud refused access to the installation list – details are in the Home Assistant log."
     }
   }
 }

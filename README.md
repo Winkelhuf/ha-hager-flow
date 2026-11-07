@@ -1,4 +1,4 @@
-# Hager flow Modbus Integration for Home Assistant
+# Hager flow Modbus Local + API — Home Assistant Integration
 
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2025.12%2B-blue.svg)](https://www.home-assistant.io/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -7,6 +7,8 @@
 🌐 **Supported System Languages:** `English` | `Deutsch` | `Français` | `Nederlands`
 
 A modern, highly optimized Home Assistant custom integration to monitor and control your **Hager flow Energy Management System (EMS / EMC)** locally over Modbus TCP. It features a strict **Auto-Discovery engine** that automatically maps and dynamically names connected hardware while filtering out offline devices to keep your entities clean.
+
+Reading and most control stay **100 % local** over Modbus. On top of that, an **optional cloud layer** (opt-in, off by default) adds a handful of controls that Hager does **not** expose over Modbus — charging priority, battery-to-car discharge modes, per-wallbox charging strategy, a discharge-down-to-SoC limit, and the emergency power reserve. See [Optional: Cloud Access for Extended Features](#-optional-cloud-access-for-extended-features).
 
 ---
 
@@ -35,7 +37,8 @@ To use this integration, your setup must meet the following minimum requirements
 
 ## 📋 Features
 
-- ⚡ **100% Local Control:** Connects directly via Modbus TCP (Port 502) to your system without relying on cloud APIs.
+- ⚡ **Local-first Control:** Reads and controls your system directly via Modbus TCP (Port 502) — no cloud required for everyday operation.
+- ☁️ **Optional Cloud Extensions (opt-in):** For settings Modbus can't write, an optional cloud layer (myHager login) adds **charging priority**, **battery-to-car discharge** (solar & boost mode), per-wallbox **charging strategy**, **discharge down to a state of charge**, and the **emergency power reserve** — the last two safely coupled (the limit never drops below the reserve). Off by default; if the cloud is down, only these entities become unavailable while Modbus keeps running. See [Optional: Cloud Access](#-optional-cloud-access-for-extended-features).
 - 🔋 **Home Assistant Energy Dashboard Ready:** Automatically derives `kWh` energy sensors (with correct `total_increasing` state class) from every available power reading — no manual Riemann-sum helper entities required. See [Energy Dashboard Support](#-home-assistant-energy-dashboard-support) below.
 - 🌍 **Native Multilingual Support:** Automatically adapts to your Home Assistant system language. Fully translated into **English**, **Deutsch**, **Français**, and **Nederlands** for all entity names, states, and configuration dialogs.
 - 📦 **Multi-Hub Support:** Add multiple Hager flow devices with different IP addresses simultaneously without entity conflicts.
@@ -84,6 +87,15 @@ To use this integration, your setup must meet the following minimum requirements
 ### 🌡️ Dynamic SG Ready Sensors (if detected)
 *   **SG Ready Status** (Translated state: *Blocked*, *Normal Operation*, *Start Recommendation*, *Start Command*)
 
+### ☁️ Cloud-only Controls (optional, if cloud access is enabled)
+*   **Charging priority (cloud)** – *Charging station first* / *Battery first*
+*   **Use battery for the car — solar mode / boost mode (cloud)** – two switches, only while "Charging station first" is active
+*   **Charging strategy (cloud)** per wallbox – *Solar surplus only* / *Solar + minimum charge* / *Solar + target time* / *Boost charging*
+*   **Discharge down to state of charge (cloud)** – lower bound follows the emergency reserve; 100 % = no discharge into the car
+*   **Emergency power reserve (cloud)** – in Wh, coupled to the discharge limit
+
+See [Optional: Cloud Access for Extended Features](#-optional-cloud-access-for-extended-features) for details, limits and the safety coupling.
+
 ---
 
 ## ⚠️ Important Information: Wallbox Boost Mode Sync & Cloud Latency
@@ -98,6 +110,33 @@ To prevent rapid toggle-looping (where the switch jumps back and forth while wai
 4. **Re-Arming:** After 30 seconds, the lockout releases, the switch becomes colorful/clickable again, and normal real-time Modbus polling resumes.
 
 ---
+
+## ☁️ Optional: Cloud Access for Extended Features
+
+Modbus stays the main data source – everything is still read locally. Some settings, however, are **not writable via Modbus**. For those you can additionally enable the cloud access used by the flow web portal:
+
+**Settings → Devices & services → Hager flow → Configure** → *Enable cloud access*, enter your myHager e-mail and password. The installation is matched automatically via the EMC serial number read over Modbus.
+
+| Entity | Device | Portal equivalent |
+|---|---|---|
+| Charging priority (cloud) – *Charging station first / Battery first* | EMC | Settings → Solar priority |
+| Use battery for the car in solar mode (cloud) ¹ | EMC | Storage management → Solar mode |
+| Use battery for the car in boost mode (cloud) ¹ | EMC | Storage management → Boost mode |
+| Charging strategy (cloud) – *Solar surplus only / Solar + minimum charge / Solar + target time / Boost charging* | Wallbox | Wallbox → Charging strategy |
+| Discharge down to state of charge (cloud) ² | Wallbox | my.e3dc.com → Wallbox → discharge until SoC |
+| Emergency power reserve (cloud) – in Wh ³ | EMC | Configuration → Storage → Emergency power → Reserve |
+
+¹ Only usable with charging priority **"Charging station first"**. With "Battery first" the system would reject the change – both switches are then greyed out (unavailable).
+
+² The battery is discharged into the car down to this state of charge. Only usable while discharge is enabled (see ¹), otherwise greyed out. **Range: from the lower bound (reserve % + 10, see ³) up to 100 %.** **0 is not possible** – it would discharge the battery below the emergency reserve; a smaller value is raised to the lower bound automatically. **100 % means no discharge into the car** – the battery is kept entirely for the house. This setting exists only in the E3/DC portal, not in the flow portal.
+
+³ Energy the battery keeps back for emergency power (in Wh). **Coupled to the discharge limit:** the limit can never fall below the reserve and always stays at least 10 % above it. The limit's lower bound is `reserve ÷ (battery modules × 3000 Wh)` + 10 %. Raising the reserve pulls the limit up automatically. Entity attributes show capacity, reserve % and the computed lower bound. Note: setting the reserve can briefly reset the discharge limit to 0 on the device – the integration automatically corrects it back to the lower bound while discharge is enabled.
+
+The Modbus sensors still report the current priority and discharge state; the cloud entities poll the cloud once a minute.
+
+> ⏱️ **Up to 30 seconds delay – please don't click repeatedly.** Every change travels through the cloud to the device and is reported back from there, which takes up to ~30 seconds. During that time the entity already shows the selected value, and further clicks on the same entity are rejected with a notice (click protection). The Modbus sensors also pick up the new state only after this delay.
+
+> ⚠️ **Experimental and unofficial.** This is the undocumented API behind flow.hager.com and Hager may change it at any time. If the cloud is down, only the cloud entities become unavailable – Modbus keeps running. Accounts with two-factor authentication are not supported. Endpoint details: [docs/cloud-api.md](docs/cloud-api.md). Login flow adapted from [hebrru/Hager-local](https://github.com/hebrru/Hager-local) (MIT).
 
 ## 🔋 Home Assistant Energy Dashboard Support
 
@@ -163,14 +202,14 @@ If your language isn't listed, Home Assistant falls back to English.
 ### Option 1: Via HACS (recommended once stable)
 
 Once accepted into the HACS default store, you'll be able to find and install
-**Hager flow Modbus** directly from HACS → Integrations without adding a
+**Hager flow Modbus Local + API** directly from HACS → Integrations without adding a
 custom repository first.
 
 One-Click Installation: <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=Winkelhuf&repository=ha-hager-flow"><img src="https://my.home-assistant.io/badges/hacs_repository.svg" alt="Open in HACS" /></a>
 
 1. In Home Assistant open **HACS → Integrations**.
-2. Search for **Hager flow Modbus**
-3. Install **Hager flow Modbus** and restart Home Assistant.
+2. Search for **Hager flow Modbus Local + API**
+3. Install **Hager flow Modbus Local + API** and restart Home Assistant.
 
 ### Option 2: Via HACS Custom Repository (Current Method)
 Since this integration is not yet part of the HACS default store, you can easily add it manually as a Custom Repository:
@@ -181,7 +220,7 @@ Since this integration is not yet part of the HACS default store, you can easily
    `[https://github.com/Winkelhuf/ha-hager-flow]`
 4. In the **Type** dropdown, select **Integration**.
 5. Click **Add** and wait for HACS to clone the repository.
-6. Find the newly listed **Hager flow Modbus** card, click **Download**, and select the latest version.
+6. Find the newly listed **Hager flow Modbus Local + API** card, click **Download**, and select the latest version.
 7. **Restart** Home Assistant.
 
 ### Option 3: Manual Installation (Private Testing)
@@ -196,7 +235,7 @@ Since this integration is not yet part of the HACS default store, you can easily
 
 1. In Home Assistant, navigate to **Settings** > **Devices & Services**.
 2. Click the **+ Add Integration** button in the bottom right corner.
-3. Search for **"Hager flow Modbus"** and select it.
+3. Search for **"Hager flow Modbus Local + API"** and select it.
 4. Enter the **IP Address** of your local Hager flow system (XEM470) (Default fallback preset: `192.168.70.30`).
 5. Click **Submit**. The integration will automatically fire up the discovery engine and populate your dashboard with all your active local hardware grouped cleanly into distinct devices with beautiful integrated brand logos!
 

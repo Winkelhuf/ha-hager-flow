@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
 
+    from .cloud.coordinator import HagerFlowCloudCoordinator
     from .coordinator import HagerFlowCoordinator
 
 
@@ -23,3 +24,5 @@ class HagerFlowData:
     client: object
     coordinator: "HagerFlowCoordinator"
     integration: object
+    # Optionaler Cloud-Zugang; None, wenn in den Optionen nicht aktiviert
+    cloud: "HagerFlowCloudCoordinator | None" = None

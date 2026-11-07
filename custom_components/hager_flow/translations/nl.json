@@ -23,7 +23,7 @@
       "power_prioritaet_ziel": {
         "name": "Laadprioriteit",
         "state": {
-          "car_first": "Auto eerst",
+          "car_first": "Laadstation eerst",
           "battery_first": "Batterij eerst"
         }
       },
@@ -158,12 +158,79 @@
     "switch": {
       "boostmodus": {
         "name": "Boostmodus"
+      },
+      "speicher_fuers_auto_solar": {
+        "name": "Batterij voor de auto in zonnemodus (cloud)"
+      },
+      "speicher_fuers_auto_boost": {
+        "name": "Batterij voor de auto in boostmodus (cloud)"
+      }
+    },
+    "select": {
+      "ladeprioritaet": {
+        "name": "Laadprioriteit (cloud)",
+        "state": {
+          "car_first": "Laadstation eerst",
+          "battery_first": "Batterij eerst"
+        }
+      },
+      "ladestrategie": {
+        "name": "Laadstrategie (cloud)",
+        "state": {
+          "solar_only": "Alleen zonne-overschot",
+          "solar_minimum": "Zon + minimale lading",
+          "solar_delayed": "Zon + doeltijd",
+          "immediate": "Boostladen"
+        }
+      }
+    },
+    "number": {
+      "entladen_bis_ladezustand": {
+        "name": "Ontladen tot laadtoestand (Cloud)"
+      },
+      "notstromreserve": {
+        "name": "Noodstroomreserve (Cloud)"
       }
     }
   },
   "exceptions": {
     "boost_cooldown": {
       "message": "De wallbox verwerkt nog de laatste opdracht. Wacht nog {seconds} seconden op de cloudsynchronisatie."
+    },
+    "cloud_write_failed": {
+      "message": "Schrijven naar de Hager flow cloud mislukt: {error}"
+    },
+    "cloud_cooldown": {
+      "message": "De cloud verwerkt de laatste wijziging nog. Wacht nog {seconds} seconden."
+    },
+    "cloud_needs_car_first": {
+      "message": "De batterij voor de auto gebruiken kan alleen met laadprioriteit \"Laadstation eerst\"."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Cloudtoegang (optioneel)",
+        "description": "Modbus blijft de hoofdbron. Instellingen die niet via Modbus beschrijfbaar zijn (laadprioriteit, batterij voor de auto, laadstrategie van de laadpaal) kunnen extra via de onofficiële Hager flow cloud-API worden gewijzigd. Gebruik je flow.hager.com / myHager-login. Experimenteel – Hager kan deze API op elk moment wijzigen.",
+        "data": {
+          "cloud_enabled": "Cloudtoegang inschakelen",
+          "cloud_email": "myHager-e-mail",
+          "cloud_password": "myHager-wachtwoord"
+        }
+      },
+      "installation": {
+        "title": "Installatie kiezen",
+        "description": "Je account bevat meerdere installaties. Welke hoort bij dit Hager flow systeem?",
+        "data": {
+          "cloud_installation": "Installatie"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Inloggen mislukt. Controleer e-mail en wachtwoord – details staan in het Home Assistant-logboek.",
+      "cloud_cannot_connect": "De Hager flow cloud is niet bereikbaar.",
+      "no_installations": "Geen installatie gevonden in dit account.",
+      "cloud_access_denied": "Inloggen gelukt, maar de cloud weigert toegang tot de installatielijst – details staan in het Home Assistant-logboek."
     }
   }
 }
