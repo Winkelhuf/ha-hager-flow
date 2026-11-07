@@ -121,6 +121,20 @@ def build_evse_payload(evse: dict[str, Any], strategy: str) -> dict[str, Any]:
 # --------------------------------------------------------------------------- #
 # Datenmodell
 # --------------------------------------------------------------------------- #
+def wallbox_index(evse: dict[str, Any]) -> int:
+    """Wallbox-Index für den E3/DC-Endpunkt (/wallboxes/{sn}/{index}/configuration)."""
+    value = evse.get("index")
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return 0
+
+
+def wallbox_config_path(emc_serial: str, index: int) -> str:
+    """Pfad der Wallbox-Konfiguration auf e3dc.e3dc.com (hält u. a. das Feld ``soc``)."""
+    return f"{AUTH_BASE_URL}/wallboxes/{emc_serial}/{index}/configuration"
+
+
 @dataclass(slots=True)
 class CloudWallbox:
     """Eine Wallbox (EVSE) aus der Cloud."""
@@ -128,10 +142,16 @@ class CloudWallbox:
     evse_id: int
     name: str
     raw: dict[str, Any]
+    # Entladegrenze "Bis Ladezustand" (%) aus der E3/DC-Wallbox-Konfiguration; None = nicht gelesen
+    discharge_soc: int | None = None
 
     @property
     def strategy(self) -> str | None:
         return strategy_from_parameters(self.raw.get("parameters") or {})
+
+    @property
+    def index(self) -> int:
+        return wallbox_index(self.raw)
 
 
 @dataclass(slots=True)
@@ -259,17 +279,40 @@ class HagerFlowCloudApi:
         config = await self._request("GET", self._inst_url("/config")) or {}
         emc = await self.async_get_emc_link()
         wallboxes: dict[int, CloudWallbox] = {}
+        serial = str(emc.get("deviceId")) if emc else None
         if emc:
             sub = await self._request("GET", self._inst_url(f"/device-links/{emc['id']}/sub")) or {}
             for evse in sub.get("controlled") or []:
                 if isinstance(evse, dict) and str(evse.get("type")).casefold() == "evse":
-                    wallboxes[int(evse["id"])] = CloudWallbox(int(evse["id"]), str(evse.get("deviceName") or ""), evse)
+                    wb = CloudWallbox(int(evse["id"]), str(evse.get("deviceName") or ""), evse)
+                    wb.discharge_soc = await self._async_read_discharge_soc(serial, wb.index)
+                    wallboxes[int(evse["id"])] = wb
         return CloudSnapshot(
             config=config,
             emc_link_id=int(emc["id"]) if emc else None,
             emc_serial=str(emc.get("deviceId")) if emc else None,
             wallboxes=wallboxes,
         )
+
+    async def _async_read_discharge_soc(self, emc_serial: str | None, index: int) -> int | None:
+        """Entladegrenze ``soc`` aus der Wallbox-Konfiguration lesen.
+
+        Dieser Endpunkt liegt auf e3dc.e3dc.com und ist nicht bei jeder Anlage
+        verfügbar – schlägt er fehl, bleibt die Entität nur unavailable.
+        """
+        if not emc_serial:
+            return None
+        try:
+            config = await self._request("GET", wallbox_config_path(emc_serial, index))
+        except HagerCloudError as err:
+            _LOGGER.debug("Wallbox-Konfiguration (soc) nicht lesbar: %s", err)
+            return None
+        if isinstance(config, dict) and isinstance(config.get("soc"), (int, float)):
+            return int(config["soc"])
+        return None
+
+    async def async_get_wallbox_configuration(self, emc_serial: str, index: int) -> dict[str, Any]:
+        return await self._request("GET", wallbox_config_path(emc_serial, index)) or {}
 
     # ---- Schreiben ----------------------------------------------------------
     async def async_sync(self) -> None:
@@ -289,3 +332,9 @@ class HagerFlowCloudApi:
             build_evse_payload(wallbox.raw, strategy),
         )
         await self.async_sync()
+
+    async def async_set_discharge_soc(self, emc_serial: str, wallbox: CloudWallbox, soc: int) -> None:
+        """Entladegrenze "Bis Ladezustand" (%) setzen – Teil-PUT wie beim Boost (chargeFull)."""
+        await self._request(
+            "PUT", wallbox_config_path(emc_serial, wallbox.index), {"soc": max(0, min(100, int(soc)))}
+        )

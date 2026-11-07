@@ -229,3 +229,34 @@ def test_saml_from_js_base64_single_quotes_prefers_prod_host() -> None:
 
 def test_saml_absent() -> None:
     assert _saml_post_from_script("<script>var x = 1;</script>") is None
+
+
+# --------------------------------------------------------------------------- #
+# Wallbox-Entladegrenze "Bis Ladezustand" (soc)
+# --------------------------------------------------------------------------- #
+from custom_components.hager_flow.cloud.api import (  # noqa: E402
+    CloudWallbox,
+    wallbox_config_path,
+    wallbox_index,
+)
+from custom_components.hager_flow.cloud.const import AUTH_BASE_URL  # noqa: E402
+
+
+def test_wallbox_index_from_evse() -> None:
+    assert wallbox_index({"index": 0}) == 0
+    assert wallbox_index({"index": "2"}) == 2
+    assert wallbox_index({}) == 0
+    assert wallbox_index({"index": None}) == 0
+
+
+def test_wallbox_config_path() -> None:
+    assert (
+        wallbox_config_path("322337012186", 0)
+        == f"{AUTH_BASE_URL}/wallboxes/322337012186/0/configuration"
+    )
+
+
+def test_cloud_wallbox_index_property() -> None:
+    wb = CloudWallbox(1000184646, "MG-Scheune", {"index": 1}, discharge_soc=60)
+    assert wb.index == 1
+    assert wb.discharge_soc == 60

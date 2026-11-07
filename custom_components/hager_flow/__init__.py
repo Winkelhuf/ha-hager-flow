@@ -22,7 +22,7 @@ from .data import HagerFlowConfigEntry, HagerFlowData
 _LOGGER = logging.getLogger(__name__)
 
 # Hier definieren wir, welche Plattformdateien Home Assistant laden soll
-PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.SWITCH, Platform.SELECT]
+PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.SWITCH, Platform.SELECT, Platform.NUMBER]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: HagerFlowConfigEntry) -> bool:

@@ -183,6 +183,11 @@
           "immediate": "Charge boost"
         }
       }
+    },
+    "number": {
+      "entladen_bis_ladezustand": {
+        "name": "Décharger jusqu'au niveau de charge"
+      }
     }
   },
   "exceptions": {

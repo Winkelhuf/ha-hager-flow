@@ -183,6 +183,11 @@
           "immediate": "Boost charging"
         }
       }
+    },
+    "number": {
+      "entladen_bis_ladezustand": {
+        "name": "Discharge down to state of charge"
+      }
     }
   },
   "exceptions": {

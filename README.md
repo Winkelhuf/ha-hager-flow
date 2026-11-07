@@ -111,8 +111,11 @@ Modbus stays the main data source – everything is still read locally. Some set
 | Use battery for the car in solar mode (cloud) ¹ | EMC | Storage management → Solar mode |
 | Use battery for the car in boost mode (cloud) ¹ | EMC | Storage management → Boost mode |
 | Charging strategy (cloud) – *Solar surplus only / Solar + minimum charge / Solar + target time / Boost charging* | Wallbox | Wallbox → Charging strategy |
+| Discharge down to state of charge (cloud) – 0–100 % ² | Wallbox | my.e3dc.com → Wallbox → discharge until SoC |
 
 ¹ Only usable with charging priority **"Charging station first"**. With "Battery first" the system would reject the change – both switches are then greyed out (unavailable).
+
+² The battery is discharged into the car down to this state of charge (0 % = no limit, e.g. keep 60 % for the night). This setting exists only in the E3/DC portal, not in the flow portal; it only appears when your wallbox configuration provides the field.
 
 The Modbus sensors still report the current priority and discharge state; the cloud entities poll the cloud once a minute.
 

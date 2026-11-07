@@ -183,6 +183,11 @@
           "immediate": "Boostladen"
         }
       }
+    },
+    "number": {
+      "entladen_bis_ladezustand": {
+        "name": "Ontladen tot laadtoestand"
+      }
     }
   },
   "exceptions": {

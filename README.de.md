@@ -111,8 +111,11 @@ Modbus bleibt die Hauptquelle – alles wird weiterhin lokal gelesen. Einige Ein
 | Speicher fürs Auto im Solarmodus (Cloud) ¹ | EMC | Speichermanagement → Solarmodus |
 | Speicher fürs Auto im Boost-Modus (Cloud) ¹ | EMC | Speichermanagement → Boost-Modus |
 | Ladestrategie (Cloud) – *PV-Überschussladen / PV + Mindestladung / PV + Zieltermin / Boostladen* | Wallbox | Wallbox → Ladestrategie |
+| Entladen bis Ladezustand (Cloud) – 0–100 % ² | Wallbox | my.e3dc.com → Wallbox → Bis Ladezustand |
 
 ¹ Nur mit der Ladepriorität **„Ladestation zuerst“** nutzbar. Bei „Batterie zuerst“ würde das System die Änderung ablehnen – die beiden Schalter sind dann ausgegraut (nicht verfügbar).
+
+² Bis zu diesem Ladezustand entlädt der Speicher ins Auto (0 % = keine Grenze, z. B. 60 % für die Nacht behalten). Die Einstellung gibt es nur im E3/DC-Portal, nicht im flow-Portal; sie erscheint nur, wenn deine Wallbox-Konfiguration das Feld liefert.
 
 Die aktuellen Werte von Ladepriorität und Entladung lesen weiterhin die Modbus-Sensoren; die Cloud-Entitäten fragen die Cloud jede Minute ab.
 

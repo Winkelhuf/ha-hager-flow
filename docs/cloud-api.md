@@ -58,12 +58,24 @@ Body = `deviceName`, `parameters` (aktueller Stand) und `evseSubTypeParameters`.
 | PV + Zieltermin | `true` | `Delayed` | 7× `{"daytime": "21600", "minEnergy": "7"}` (Sekunden ab Mitternacht) |
 | Boostladen | `false` | `Disabled` | `[]` |
 
-## Nicht vorhanden: „Speicher entladen bis x %“
+### Entladegrenze „Bis Ladezustand“ (%) – Wallbox-Konfiguration
 
 E3/DC-Speicher kennen eine Untergrenze, bis zu der der Speicher ins Auto entladen wird
-(z. B. 60 % für die Nacht behalten). In der Anlagen-Konfiguration, die das flow-Portal
-liest und schreibt (`GET/PUT …/installations/{id}/config`), gibt es dafür **kein Feld**,
-und das Portal bietet die Einstellung nicht an (Stand 07.11.2026). Vorhandene Felder:
-`emsWeatherRegulatedChargeEnabled`, `emsBatteryBeforeCarMode`, `emsBatteryToCarMode`,
-`emsWallboxEnforcePowerAssignment`, `eegActive`, `eegValue`, `mainFuse`, `phaseCount`,
-`gridPowerOffset`, `peakPowerPv`, `sgrCooldown` u. a.
+(z. B. 60 % für die Nacht behalten). Im **flow**-Portal gibt es diese Einstellung nicht;
+die Anlagen-Konfiguration (`…/installations/{id}/config`) hat dafür kein Feld. Sie sitzt
+stattdessen auf der **E3/DC-Wallbox-Konfiguration** – demselben Objekt, über das auch der
+Boost (`chargeFull`) geschrieben wird:
+
+```
+GET/PUT https://e3dc.e3dc.com/wallboxes/{emcSeriennummer}/{index}/configuration
+```
+
+| Portal (my.e3dc.com → Wallbox) | Feld | Wert |
+|---|---|---|
+| Batterieentladung durch Wallbox → Bis Ladezustand | `soc` | 0–100 (%), `0` = keine Grenze |
+
+- `{emcSeriennummer}` ist die `deviceId` des EMC-Device-Links (die SN aus der Portal-URL).
+- `{index}` ist der `index` der Wallbox aus `…/sub` → `controlled[]`.
+- Schreiben als Teil-PUT `{"soc": <wert>}`, wie beim Boost. Kein `config/sync` nötig.
+- Verifiziert per Mitschnitt am 07.11.2026 (Feldname `soc`, Nachbarfelder `sunModeActive`,
+  `minChargeCurrent`, `minChargePower`, `maxChargeCurrent`, `parameterList`, `chargeFull`).
