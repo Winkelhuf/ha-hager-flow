@@ -186,10 +186,10 @@
     },
     "number": {
       "entladen_bis_ladezustand": {
-        "name": "Ontladen tot laadtoestand"
+        "name": "Ontladen tot laadtoestand (Cloud)"
       },
       "notstromreserve": {
-        "name": "Noodstroomreserve"
+        "name": "Noodstroomreserve (Cloud)"
       }
     }
   },

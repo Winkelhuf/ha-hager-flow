@@ -186,10 +186,10 @@
     },
     "number": {
       "entladen_bis_ladezustand": {
-        "name": "Discharge down to state of charge"
+        "name": "Discharge down to state of charge (Cloud)"
       },
       "notstromreserve": {
-        "name": "Emergency power reserve"
+        "name": "Emergency power reserve (Cloud)"
       }
     }
   },
