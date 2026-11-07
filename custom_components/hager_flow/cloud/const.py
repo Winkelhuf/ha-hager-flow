@@ -38,24 +38,6 @@ CHARGING_STRATEGIES = [
 DEFAULT_MIN_ENERGY_KWH = "7"
 DEFAULT_DELAYED_DAYTIME_S = "21600"  # 06:00 Uhr
 
-# Beim Zurückschreiben der Wallbox-Konfiguration (für soc) ausgelassene Felder:
-# reine Messwerte, Status und Geräte-Identität – das sind keine Eingabefelder.
-WALLBOX_CONFIG_READONLY = frozenset(
-    {
-        "deviceState",
-        "status",
-        "pmPowerL1",
-        "pmPowerL2",
-        "pmPowerL3",
-        "pmEnergyL1",
-        "pmEnergyL2",
-        "pmEnergyL3",
-        "serial",
-        "appSoftware",
-        "keyState",
-    }
-)
-
 # Diese Parameter schickt das Portal beim Speichern einer Wallbox mit
 EVSE_PARAMETER_KEYS = (
     "protection",

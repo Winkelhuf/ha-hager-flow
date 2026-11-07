@@ -58,28 +58,32 @@ Body = `deviceName`, `parameters` (aktueller Stand) und `evseSubTypeParameters`.
 | PV + Zieltermin | `true` | `Delayed` | 7× `{"daytime": "21600", "minEnergy": "7"}` (Sekunden ab Mitternacht) |
 | Boostladen | `false` | `Disabled` | `[]` |
 
-### Entladegrenze „Bis Ladezustand“ (%) – Wallbox-Konfiguration
+### Entladegrenze „Bis Ladezustand“ (%) – Ladepriorisierung
 
 E3/DC-Speicher kennen eine Untergrenze, bis zu der der Speicher ins Auto entladen wird
-(z. B. 60 % für die Nacht behalten). Im **flow**-Portal gibt es diese Einstellung nicht;
-die Anlagen-Konfiguration (`…/installations/{id}/config`) hat dafür kein Feld. Sie sitzt
-stattdessen auf der **E3/DC-Wallbox-Konfiguration** – demselben Objekt, über das auch der
-Boost (`chargeFull`) geschrieben wird:
+(z. B. 60 % für die Nacht behalten). Im **flow**-Portal gibt es diese Einstellung nicht,
+nur im E3/DC-Portal (my.e3dc.com → Wallbox → „Batterieentladung durch Wallbox“). Sie wird
+**nicht** über die Wallbox-Konfiguration geschrieben (ein Teil-PUT dort scheitert mit
+HTTP 400 „invalid request payload input“), sondern über den **systemweiten** Endpunkt:
 
 ```
-GET/PUT https://e3dc.e3dc.com/wallboxes/{emcSeriennummer}/{index}/configuration
+PUT https://e3dc.e3dc.com/wallboxes/{emcSeriennummer}/loading-priorisation   (204)
 ```
 
-| Portal (my.e3dc.com → Wallbox) | Feld | Wert |
+- **Kein Index** – die Einstellung gilt für alle Wallboxen des Systems.
+- **Body ist ein JSON-String** (doppelt kodiert), kompakt wie das Portal:
+  `"{\"isBattery\":false,\"inMixMode\":false,\"inSunMode\":true,\"tillSoc\":10}"`
+
+| Feld | Bedeutung | entspricht (Anlagen-Konfig) |
 |---|---|---|
-| Batterieentladung durch Wallbox → Bis Ladezustand | `soc` | 0–100 (%), `0` = keine Grenze |
+| `isBattery` | Batterie zuerst | `emsBatteryBeforeCarMode` |
+| `inSunMode` | Entladung im Solarmodus erlaubt | `emsBatteryToCarMode` |
+| `inMixMode` | Entladung im Misch-/Boost-Modus erlaubt | `emsWallboxEnforcePowerAssignment` |
+| `tillSoc` | **Bis Ladezustand** (0–100 %) | – |
 
-- `{emcSeriennummer}` ist die `deviceId` des EMC-Device-Links (die SN aus der Portal-URL).
-- `{index}` ist der `index` der Wallbox aus `…/sub` → `controlled[]`.
-- **Schreiben: lesen-ändern-zurückschreiben.** Ein Teil-PUT nur mit `soc` wird mit
-  HTTP 400 „invalid request payload input" (errno 101) abgelehnt. Deshalb die komplette
-  Konfiguration per GET holen, `soc` ändern und das ganze Objekt zurück-PUTen; reine
-  Messwerte/Statusfelder (`pmPower*`, `pmEnergy*`, `status`, `deviceState`, `serial`,
-  `appSoftware`, `keyState`) werden weggelassen. Kein `config/sync` nötig.
-- Feldname `soc` per Mitschnitt am 07.11.2026 verifiziert (Nachbarfelder `sunModeActive`,
-  `minChargeCurrent`, `minChargePower`, `maxChargeCurrent`, `parameterList`, `chargeFull`).
+- Der Endpunkt setzt den **ganzen Block**, deshalb die drei Flags aus der Anlagen-Konfig
+  mitschicken. `tillSoc` wird nur gesendet/ist nur wirksam, wenn die Entladung aktiv ist
+  (nicht „Batterie zuerst“, mindestens ein Modus erlaubt).
+- **Lesen** des aktuellen Werts weiter über `GET …/wallboxes/{sn}/{index}/configuration`,
+  Feld `soc`.
+- Per Mitschnitt am 07.11.2026 verifiziert (Set `{…,"tillSoc":10}`, Reset ohne `tillSoc`).

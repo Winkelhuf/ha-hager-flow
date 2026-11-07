@@ -19,6 +19,8 @@ from .auth import CloudTokens, async_login, token_expiry
 from .const import (
     AUTH_BASE_URL,
     CFG_BATTERY_BEFORE_CAR,
+    CFG_BATTERY_TO_CAR_BOOST,
+    CFG_BATTERY_TO_CAR_SOLAR,
     DEFAULT_DELAYED_DAYTIME_S,
     DEFAULT_MIN_ENERGY_KWH,
     EVSE_PARAMETER_KEYS,
@@ -30,7 +32,6 @@ from .const import (
     STRATEGY_SOLAR_ONLY,
     TOKEN_REFRESH_MARGIN,
     USER_AGENT,
-    WALLBOX_CONFIG_READONLY,
 )
 from .errors import HagerCloudAuthError, HagerCloudConnectionError, HagerCloudError
 
@@ -132,8 +133,28 @@ def wallbox_index(evse: dict[str, Any]) -> int:
 
 
 def wallbox_config_path(emc_serial: str, index: int) -> str:
-    """Pfad der Wallbox-Konfiguration auf e3dc.e3dc.com (hält u. a. das Feld ``soc``)."""
+    """Pfad der Wallbox-Konfiguration auf e3dc.e3dc.com (liest u. a. das Feld ``soc``)."""
     return f"{AUTH_BASE_URL}/wallboxes/{emc_serial}/{index}/configuration"
+
+
+def loading_priorisation_path(emc_serial: str) -> str:
+    """Systemweiter Endpunkt für Ladepriorisierung inkl. Entladegrenze (``tillSoc``)."""
+    return f"{AUTH_BASE_URL}/wallboxes/{emc_serial}/loading-priorisation"
+
+
+def build_loading_priorisation(config: dict[str, Any], soc: int) -> dict[str, Any]:
+    """Payload für ``/loading-priorisation`` aus der Anlagen-Konfiguration plus Entladegrenze.
+
+    Die Felder entsprechen den vorhandenen EMS-Einstellungen:
+    ``isBattery`` = Batterie zuerst, ``inSunMode`` = Speicher fürs Auto im Solarmodus,
+    ``inMixMode`` = Speicher fürs Auto im Boost-/Mischmodus. ``tillSoc`` ist die Grenze.
+    """
+    return {
+        "isBattery": bool(config.get(CFG_BATTERY_BEFORE_CAR, False)),
+        "inMixMode": bool(config.get(CFG_BATTERY_TO_CAR_BOOST, False)),
+        "inSunMode": bool(config.get(CFG_BATTERY_TO_CAR_SOLAR, False)),
+        "tillSoc": max(0, min(100, int(soc))),
+    }
 
 
 @dataclass(slots=True)
@@ -334,19 +355,15 @@ class HagerFlowCloudApi:
         )
         await self.async_sync()
 
-    async def async_set_discharge_soc(self, emc_serial: str, wallbox: CloudWallbox, soc: int) -> None:
+    async def async_set_discharge_soc(self, emc_serial: str, config: dict[str, Any], soc: int) -> None:
         """Entladegrenze "Bis Ladezustand" (%) setzen.
 
-        Dieser Endpunkt lehnt einen Teil-PUT ab ("invalid request payload input").
-        Deshalb lesen-ändern-schreiben: die komplette Wallbox-Konfiguration holen, nur
-        ``soc`` ändern und das ganze Objekt zurückschicken. Reine Messwerte und
-        Statusfelder werden dabei weggelassen, der Rest unverändert gespiegelt.
+        Geht nicht über die Wallbox-Konfiguration, sondern über den systemweiten
+        Endpunkt ``/wallboxes/{sn}/loading-priorisation``. Dieser setzt den ganzen
+        Block, daher werden die aktuellen Entlade-Flags (aus der Anlagen-Konfiguration)
+        mitgeschickt. Der Body ist – wie vom Portal – ein JSON-String.
         """
-        path = wallbox_config_path(emc_serial, wallbox.index)
-        config = await self._request("GET", path)
-        if not isinstance(config, dict):
-            raise HagerCloudError("Wallbox-Konfiguration konnte nicht gelesen werden")
-        payload = {k: v for k, v in config.items() if k not in WALLBOX_CONFIG_READONLY}
-        payload["soc"] = max(0, min(100, int(soc)))
-        _LOGGER.debug("Setze soc=%s; PUT-Felder: %s", payload["soc"], sorted(payload))
-        await self._request("PUT", path, payload)
+        payload = build_loading_priorisation(config, soc)
+        body = json.dumps(payload, separators=(",", ":"))
+        _LOGGER.debug("Setze Ladepriorisierung (tillSoc=%s): %s", payload["tillSoc"], body)
+        await self._request("PUT", loading_priorisation_path(emc_serial), body)

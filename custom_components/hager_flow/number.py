@@ -6,6 +6,7 @@ from homeassistant.const import PERCENTAGE
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .cloud.const import CFG_BATTERY_BEFORE_CAR, CFG_BATTERY_TO_CAR_BOOST, CFG_BATTERY_TO_CAR_SOLAR
 from .cloud.coordinator import HagerFlowCloudCoordinator
 from .cloud.entity import HagerFlowCloudEntity, wallbox_device_info
 from .data import HagerFlowConfigEntry
@@ -69,9 +70,28 @@ class HagerFlowDischargeSocNumber(HagerFlowCloudEntity, NumberEntity):
         return self.coordinator.data.wallboxes.get(self._evse_id) if self.coordinator.data else None
 
     @property
+    def _config(self) -> dict:
+        return self.coordinator.data.config if self.coordinator.data else {}
+
+    @property
+    def _discharge_enabled(self) -> bool:
+        """Entladegrenze gilt nur, wenn der Speicher überhaupt ins Auto entladen darf –
+        also nicht bei "Batterie zuerst" und mit mindestens einem aktiven Entlademodus."""
+        c = self._config
+        return (
+            not c.get(CFG_BATTERY_BEFORE_CAR, False)
+            and (c.get(CFG_BATTERY_TO_CAR_SOLAR, False) or c.get(CFG_BATTERY_TO_CAR_BOOST, False))
+        )
+
+    @property
     def available(self) -> bool:
         wb = self._wallbox
-        return super().available and wb is not None and wb.discharge_soc is not None
+        return (
+            super().available
+            and wb is not None
+            and wb.discharge_soc is not None
+            and self._discharge_enabled
+        )
 
     @property
     def native_value(self) -> float | None:
@@ -79,8 +99,8 @@ class HagerFlowDischargeSocNumber(HagerFlowCloudEntity, NumberEntity):
         return self._value(wb.discharge_soc if wb else None)
 
     async def async_set_native_value(self, value: float) -> None:
-        wallbox, serial = self._wallbox, self.coordinator.data.emc_serial
+        serial, config = self.coordinator.data.emc_serial, self._config
         await self._async_write(
-            lambda: self.coordinator.api.async_set_discharge_soc(serial, wallbox, int(value)),
+            lambda: self.coordinator.api.async_set_discharge_soc(serial, config, int(value)),
             int(value),
         )

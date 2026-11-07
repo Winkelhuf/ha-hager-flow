@@ -260,3 +260,55 @@ def test_cloud_wallbox_index_property() -> None:
     wb = CloudWallbox(1000184646, "MG-Scheune", {"index": 1}, discharge_soc=60)
     assert wb.index == 1
     assert wb.discharge_soc == 60
+
+
+# --------------------------------------------------------------------------- #
+# Ladepriorisierung / tillSoc (loading-priorisation)
+# --------------------------------------------------------------------------- #
+import json as _json  # noqa: E402
+
+from custom_components.hager_flow.cloud.api import (  # noqa: E402
+    build_loading_priorisation,
+    loading_priorisation_path,
+)
+from custom_components.hager_flow.cloud.const import (  # noqa: E402
+    CFG_BATTERY_BEFORE_CAR,
+    CFG_BATTERY_TO_CAR_BOOST,
+    CFG_BATTERY_TO_CAR_SOLAR,
+)
+
+
+def test_loading_priorisation_path() -> None:
+    assert (
+        loading_priorisation_path("322337012186")
+        == f"{AUTH_BASE_URL}/wallboxes/322337012186/loading-priorisation"
+    )
+
+
+def test_build_loading_priorisation_maps_config_fields() -> None:
+    config = {
+        CFG_BATTERY_BEFORE_CAR: False,
+        CFG_BATTERY_TO_CAR_SOLAR: True,
+        CFG_BATTERY_TO_CAR_BOOST: False,
+    }
+    assert build_loading_priorisation(config, 10) == {
+        "isBattery": False,
+        "inMixMode": False,
+        "inSunMode": True,
+        "tillSoc": 10,
+    }
+
+
+def test_build_loading_priorisation_matches_captured_body() -> None:
+    """Kompakter JSON-String wie vom Portal mitgeschnitten."""
+    config = {CFG_BATTERY_BEFORE_CAR: False, CFG_BATTERY_TO_CAR_SOLAR: True, CFG_BATTERY_TO_CAR_BOOST: False}
+    body = _json.dumps(build_loading_priorisation(config, 10), separators=(",", ":"))
+    assert body == '{"isBattery":false,"inMixMode":false,"inSunMode":true,"tillSoc":10}'
+
+
+def test_build_loading_priorisation_clamps() -> None:
+    assert build_loading_priorisation({}, 150)["tillSoc"] == 100
+    assert build_loading_priorisation({}, -5)["tillSoc"] == 0
+    # Standard ohne Konfig: alles aus
+    p = build_loading_priorisation({}, 0)
+    assert p["isBattery"] is False and p["inSunMode"] is False and p["inMixMode"] is False
