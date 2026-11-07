@@ -142,6 +142,16 @@ def loading_priorisation_path(emc_serial: str) -> str:
     return f"{AUTH_BASE_URL}/wallboxes/{emc_serial}/loading-priorisation"
 
 
+def parse_loading_priorisation(payload: Any) -> dict[str, Any]:
+    """Antwort von ``/loading-priorisation`` lesen – kann ein JSON-String sein (doppelt kodiert)."""
+    if isinstance(payload, str):
+        try:
+            payload = json.loads(payload)
+        except ValueError:
+            return {}
+    return payload if isinstance(payload, dict) else {}
+
+
 def build_loading_priorisation(config: dict[str, Any], soc: int) -> dict[str, Any]:
     """Payload für ``/loading-priorisation`` aus der Anlagen-Konfiguration plus Entladegrenze.
 
@@ -317,21 +327,35 @@ class HagerFlowCloudApi:
         )
 
     async def _async_read_discharge_soc(self, emc_serial: str | None, index: int) -> int | None:
-        """Entladegrenze ``soc`` aus der Wallbox-Konfiguration lesen.
+        """Entladegrenze lesen – bevorzugt dort, wohin wir auch schreiben (loading-priorisation).
 
-        Dieser Endpunkt liegt auf e3dc.e3dc.com und ist nicht bei jeder Anlage
-        verfügbar – schlägt er fehl, bleibt die Entität nur unavailable.
+        Geschrieben wird ``tillSoc`` über ``/loading-priorisation``. Dasselbe wieder
+        auslesen, sonst sieht eine Änderung nach "fällt zurück" aus. ``configuration.soc``
+        dient nur als Rückfallebene. Beide Werte werden zur Diagnose geloggt.
         """
         if not emc_serial:
             return None
+
+        till_soc: int | None = None
+        try:
+            lp = parse_loading_priorisation(await self._request("GET", loading_priorisation_path(emc_serial)))
+            if isinstance(lp.get("tillSoc"), (int, float)):
+                till_soc = int(lp["tillSoc"])
+        except HagerCloudError as err:
+            _LOGGER.debug("loading-priorisation nicht lesbar: %s", err)
+
+        soc_cfg: int | None = None
         try:
             config = await self._request("GET", wallbox_config_path(emc_serial, index))
+            if isinstance(config, dict) and isinstance(config.get("soc"), (int, float)):
+                soc_cfg = int(config["soc"])
         except HagerCloudError as err:
             _LOGGER.debug("Wallbox-Konfiguration (soc) nicht lesbar: %s", err)
-            return None
-        if isinstance(config, dict) and isinstance(config.get("soc"), (int, float)):
-            return int(config["soc"])
-        return None
+
+        _LOGGER.debug(
+            "Entladegrenze gelesen: loading-priorisation.tillSoc=%s, configuration.soc=%s", till_soc, soc_cfg
+        )
+        return till_soc if till_soc is not None else soc_cfg
 
     async def async_get_wallbox_configuration(self, emc_serial: str, index: int) -> dict[str, Any]:
         return await self._request("GET", wallbox_config_path(emc_serial, index)) or {}

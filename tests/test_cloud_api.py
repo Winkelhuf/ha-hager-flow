@@ -312,3 +312,26 @@ def test_build_loading_priorisation_clamps() -> None:
     # Standard ohne Konfig: alles aus
     p = build_loading_priorisation({}, 0)
     assert p["isBattery"] is False and p["inSunMode"] is False and p["inMixMode"] is False
+
+
+from custom_components.hager_flow.cloud.api import parse_loading_priorisation  # noqa: E402
+
+
+def test_parse_loading_priorisation_dict() -> None:
+    assert parse_loading_priorisation({"tillSoc": 10, "isBattery": False})["tillSoc"] == 10
+
+
+def test_parse_loading_priorisation_double_encoded_string() -> None:
+    body = '{"isBattery":false,"inMixMode":true,"inSunMode":true,"tillSoc":10}'
+    assert parse_loading_priorisation(body) == {
+        "isBattery": False,
+        "inMixMode": True,
+        "inSunMode": True,
+        "tillSoc": 10,
+    }
+
+
+def test_parse_loading_priorisation_garbage() -> None:
+    assert parse_loading_priorisation(None) == {}
+    assert parse_loading_priorisation("not json") == {}
+    assert parse_loading_priorisation(5) == {}
