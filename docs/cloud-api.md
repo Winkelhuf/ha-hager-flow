@@ -123,3 +123,8 @@ Verhalten an den Rändern: **0 ist nicht einstellbar** (würde unter die Reserve
 kleinerer Wert wird auf die Untergrenze angehoben). **100 % = keine Entladung ins Auto** –
 der Speicher bleibt dem Haus vorbehalten. Der Wert bewegt sich also immer im Fenster
 `[Reserve% + 10 … 100]`.
+
+**Nebeneffekt des Reserve-Schreibens:** Das `config/sync` beim Setzen der Reserve setzt das
+Entladelimit am Gerät zeitverzögert (~30 s) auf 0 zurück. Die Integration fängt das ab: ein
+Wächter im Coordinator hebt bei aktiver Entladung ein zu niedriges Limit beim nächsten
+Abruf automatisch wieder auf die Untergrenze an (höchstens alle 25 s).

@@ -118,7 +118,7 @@ Modbus stays the main data source – everything is still read locally. Some set
 
 ² The battery is discharged into the car down to this state of charge. Only usable while discharge is enabled (see ¹), otherwise greyed out. **Range: from the lower bound (reserve % + 10, see ³) up to 100 %.** **0 is not possible** – it would discharge the battery below the emergency reserve; a smaller value is raised to the lower bound automatically. **100 % means no discharge into the car** – the battery is kept entirely for the house. This setting exists only in the E3/DC portal, not in the flow portal.
 
-³ Energy the battery keeps back for emergency power (in Wh). **Coupled to the discharge limit:** the limit can never fall below the reserve and always stays at least 10 % above it. The limit's lower bound is `reserve ÷ (battery modules × 3000 Wh)` + 10 %. Raising the reserve pulls the limit up automatically. Entity attributes show capacity, reserve % and the computed lower bound.
+³ Energy the battery keeps back for emergency power (in Wh). **Coupled to the discharge limit:** the limit can never fall below the reserve and always stays at least 10 % above it. The limit's lower bound is `reserve ÷ (battery modules × 3000 Wh)` + 10 %. Raising the reserve pulls the limit up automatically. Entity attributes show capacity, reserve % and the computed lower bound. Note: setting the reserve can briefly reset the discharge limit to 0 on the device – the integration automatically corrects it back to the lower bound while discharge is enabled.
 
 The Modbus sensors still report the current priority and discharge state; the cloud entities poll the cloud once a minute.
 
