@@ -160,6 +160,61 @@ def _html_redirect(body: str) -> str | None:
     return None
 
 
+
+# SAML-Antwort, die erst per JavaScript als Formular abgeschickt wird
+# (Keycloak-Seite auth.hagerenergy.com/.../after-post-broker-login)
+def _js_value(body: str, *names: str) -> str | None:
+    """Wert eines Feldes aus einem Skript (JSON oder JS-Objekt), JS-Escapes aufgelöst."""
+    for name in names:
+        pattern = re.compile(
+            rf"""["']?{re.escape(name)}["']?\s*[:=]\s*(["'])((?:(?!\1)[^\\]|\\.)*)\1""", re.DOTALL
+        )
+        if match := pattern.search(body):
+            quote, raw = match.group(1), match.group(2)
+            if quote == "'":
+                # einfache Anführungszeichen -> JSON-String daraus machen
+                raw = re.sub(r'(?<!\\)"', '\\"', raw.replace("\\'", "'"))
+            try:
+                return json.loads(f'"{raw}"')
+            except ValueError:
+                return raw
+    return None
+
+
+ASSERT_URL_RE = re.compile(r"""https://[^\s"'<>\\]+/auth-saml/service-providers/hager/assert[^\s"'<>\\]*""")
+
+
+def _saml_post_from_script(body: str) -> tuple[str, dict[str, str]] | None:
+    """Ziel-URL und Formularfelder einer per JS abgeschickten SAML-Antwort."""
+    response = _js_value(body, "SAMLResponse", "samlResponse")
+    if not response:
+        return None
+    response = response.strip()
+    if response.startswith("<"):
+        # Roh-XML -> wie im Formular Base64-kodiert senden
+        response = base64.b64encode(response.encode("utf-8")).decode("ascii")
+
+    url = _js_value(body, "url", "action", "postUrl")
+    if not url or "/assert" not in url:
+        candidates = ASSERT_URL_RE.findall(html_module.unescape(body))
+        # Produktiv-Host bevorzugen (die Seite nennt auch eine Lab-Umgebung)
+        prod = [u for u in candidates if urlparse(u).hostname == "e3dc.e3dc.com"]
+        url = (prod or candidates or [None])[0]
+    if not url:
+        return None
+
+    fields = {"SAMLResponse": response}
+    if relay := _js_value(body, "RelayState", "relayState"):
+        fields["RelayState"] = relay
+    return url, fields
+
+
+def _script_keys(body: str) -> list[str]:
+    """Feldnamen in den Skripten (ohne Werte) – für die Fehlersuche."""
+    keys = re.findall(r"""["']([A-Za-z_][A-Za-z0-9_]{2,30})["']\s*:""", body)
+    return sorted(set(keys))[:60]
+
+
 def describe_page(url: str, body: str) -> str:
     """Kurzbeschreibung einer unerwarteten Seite fürs Protokoll – ohne Query-Strings und Tokens."""
 
@@ -181,7 +236,7 @@ def describe_page(url: str, body: str) -> str:
     return (
         f"Seite {strip(url)} ({len(body or '')} Zeichen) | Titel: {title.group(1).strip()[:80] if title else '-'}"
         f" | Text: {text or '-'} | Formulare: {forms or '-'} | Felder: {inputs or '-'}"
-        f" | Skripte: {scripts} | Adressen: {urls or '-'}"
+        f" | Skripte: {scripts} | Adressen: {urls or '-'} | Schlüssel: {_script_keys(decoded) or '-'}"
     )
 
 
@@ -264,6 +319,16 @@ async def async_login(email: str, password: str) -> CloudTokens:
 
                 if form := _auto_post_form(body):
                     action, fields = form
+                    status, location, posted, text = await post(urljoin(current, action), fields)
+                    if tokens := _tokens_from_url(posted):
+                        return tokens
+                    if status in _REDIRECTS and location:
+                        url = urljoin(posted, location)
+                        continue
+                    pending = (posted, text)
+                    continue
+                if saml := _saml_post_from_script(body):
+                    action, fields = saml
                     status, location, posted, text = await post(urljoin(current, action), fields)
                     if tokens := _tokens_from_url(posted):
                         return tokens

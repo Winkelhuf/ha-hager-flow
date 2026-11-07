@@ -190,3 +190,42 @@ def test_describe_page_hides_query_and_secrets() -> None:
     assert "POST auth.hagerenergy.com/realms/customer/login-actions/x" in text
     assert "flow.hager.com/cb" in text and "username" in text
     assert "SECRET" not in text and secret not in text
+
+
+from custom_components.hager_flow.cloud.auth import _saml_post_from_script  # noqa: E402
+import base64 as _b64  # noqa: E402
+
+_XML = '<samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" ID="x"><ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#"/></samlp:Response>'
+
+
+def test_saml_from_kc_context_json() -> None:
+    """Keycloak-Theme mit kcContext-JSON (XML als JSON-String, Produktiv- und Lab-URL)."""
+    xml_json = _XML.replace("<", "\\u003c").replace('"', '\\"')
+    body = (
+        "<html><body><div id=root></div><script>window.kcContext = {"
+        '"pageId":"saml-post-form.ftl",'
+        '"clients":["https://e3dc.labprod1be.lab.e3dc.com/auth-saml/service-providers/hager/assert"],'
+        '"samlPost":{"url":"https://e3dc.e3dc.com/auth-saml/service-providers/hager/assert",'
+        f'"SAMLResponse":"{xml_json}","relayState":"rs-1"}}'
+        "};</script><script src=/x.js></script></body></html>"
+    )
+    url, fields = _saml_post_from_script(body)
+    assert url == "https://e3dc.e3dc.com/auth-saml/service-providers/hager/assert"
+    assert _b64.b64decode(fields["SAMLResponse"]).decode() == _XML
+    assert fields["RelayState"] == "rs-1"
+
+
+def test_saml_from_js_base64_single_quotes_prefers_prod_host() -> None:
+    encoded = _b64.b64encode(_XML.encode()).decode()
+    body = (
+        "<script>var data = { SAMLResponse: '" + encoded + "' };"
+        "var a='https://e3dc.labprod1be.lab.e3dc.com/auth-saml/service-providers/hager/assert';"
+        "var b='https://e3dc.e3dc.com/auth-saml/service-providers/hager/assert';</script>"
+    )
+    url, fields = _saml_post_from_script(body)
+    assert url == "https://e3dc.e3dc.com/auth-saml/service-providers/hager/assert"
+    assert fields == {"SAMLResponse": encoded}
+
+
+def test_saml_absent() -> None:
+    assert _saml_post_from_script("<script>var x = 1;</script>") is None
