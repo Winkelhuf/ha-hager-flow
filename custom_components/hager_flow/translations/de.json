@@ -23,7 +23,7 @@
       "power_prioritaet_ziel": {
         "name": "Ladepriorität",
         "state": {
-          "car_first": "Auto zuerst",
+          "car_first": "Ladestation zuerst",
           "battery_first": "Batterie zuerst"
         }
       },
@@ -170,7 +170,7 @@
       "ladeprioritaet": {
         "name": "Ladepriorität (Cloud)",
         "state": {
-          "car_first": "Auto zuerst",
+          "car_first": "Ladestation zuerst",
           "battery_first": "Batterie zuerst"
         }
       },
@@ -180,7 +180,7 @@
           "solar_only": "PV-Überschussladen",
           "solar_minimum": "PV + Mindestladung",
           "solar_delayed": "PV + Zieltermin",
-          "immediate": "Sofortladen"
+          "immediate": "Boostladen"
         }
       }
     }
@@ -191,6 +191,12 @@
     },
     "cloud_write_failed": {
       "message": "Schreiben in die Hager flow Cloud fehlgeschlagen: {error}"
+    },
+    "cloud_cooldown": {
+      "message": "Die Cloud verarbeitet noch die letzte Änderung. Bitte warte noch {seconds} Sekunden."
+    },
+    "cloud_needs_car_first": {
+      "message": "Speicher fürs Auto ist nur mit der Ladepriorität „Ladestation zuerst“ möglich."
     }
   },
   "options": {

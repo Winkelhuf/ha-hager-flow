@@ -23,7 +23,7 @@
       "power_prioritaet_ziel": {
         "name": "Laadprioriteit",
         "state": {
-          "car_first": "Auto eerst",
+          "car_first": "Laadstation eerst",
           "battery_first": "Batterij eerst"
         }
       },
@@ -170,7 +170,7 @@
       "ladeprioritaet": {
         "name": "Laadprioriteit (cloud)",
         "state": {
-          "car_first": "Auto eerst",
+          "car_first": "Laadstation eerst",
           "battery_first": "Batterij eerst"
         }
       },
@@ -180,7 +180,7 @@
           "solar_only": "Alleen zonne-overschot",
           "solar_minimum": "Zon + minimale lading",
           "solar_delayed": "Zon + doeltijd",
-          "immediate": "Direct laden"
+          "immediate": "Boostladen"
         }
       }
     }
@@ -191,6 +191,12 @@
     },
     "cloud_write_failed": {
       "message": "Schrijven naar de Hager flow cloud mislukt: {error}"
+    },
+    "cloud_cooldown": {
+      "message": "De cloud verwerkt de laatste wijziging nog. Wacht nog {seconds} seconden."
+    },
+    "cloud_needs_car_first": {
+      "message": "De batterij voor de auto gebruiken kan alleen met laadprioriteit \"Laadstation eerst\"."
     }
   },
   "options": {

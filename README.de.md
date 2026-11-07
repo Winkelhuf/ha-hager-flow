@@ -61,7 +61,7 @@ Um diese Integration zu nutzen, muss dein Setup folgende Mindestanforderungen er
 *   **Netzleistung** (Gesamte Netzleistung in W)
 *   **Batterieleistung** (Batterie Laden/Entladen in W)
 *   **Autarkie / Eigenverbrauch letzte Stunde** (Stündliche Statistik in %)
-*   **Lade-Priorität** (Übersetzter Zustand: *Auto zuerst* / *Batterie zuerst*)
+*   **Lade-Priorität** (Übersetzter Zustand: *Ladestation zuerst* / *Batterie zuerst*)
 *   **Batterie-Entladung ins Auto** (Übersetzter Zustand: *Erlaubt* / *Verboten*)
 *   **Geräteinfo:** Seriennummer des Systems, Mainboard-Firmware-Version
 *   🔋 **PV-Energie Gesamt, Hausverbrauch-Energie** (kWh, berechnet) — siehe [Energie-Dashboard-Unterstützung](#-unterstützung-für-das-home-assistant-energie-dashboard)
@@ -107,12 +107,16 @@ Modbus bleibt die Hauptquelle – alles wird weiterhin lokal gelesen. Einige Ein
 
 | Entität | Gerät | Entspricht im Portal |
 |---|---|---|
-| Ladepriorität (Cloud) – *Auto zuerst / Batterie zuerst* | EMC | Einstellungen → Solar Priorität |
-| Speicher fürs Auto im Solarmodus (Cloud) | EMC | Speichermanagement → Solarmodus |
-| Speicher fürs Auto im Boost-Modus (Cloud) | EMC | Speichermanagement → Boost-Modus |
-| Ladestrategie (Cloud) – *PV-Überschussladen / PV + Mindestladung / PV + Zieltermin / Sofortladen* | Wallbox | Wallbox → Ladestrategie |
+| Ladepriorität (Cloud) – *Ladestation zuerst / Batterie zuerst* | EMC | Einstellungen → Solar Priorität |
+| Speicher fürs Auto im Solarmodus (Cloud) ¹ | EMC | Speichermanagement → Solarmodus |
+| Speicher fürs Auto im Boost-Modus (Cloud) ¹ | EMC | Speichermanagement → Boost-Modus |
+| Ladestrategie (Cloud) – *PV-Überschussladen / PV + Mindestladung / PV + Zieltermin / Boostladen* | Wallbox | Wallbox → Ladestrategie |
+
+¹ Nur mit der Ladepriorität **„Ladestation zuerst“** nutzbar. Bei „Batterie zuerst“ würde das System die Änderung ablehnen – die beiden Schalter sind dann ausgegraut (nicht verfügbar).
 
 Die aktuellen Werte von Ladepriorität und Entladung lesen weiterhin die Modbus-Sensoren; die Cloud-Entitäten fragen die Cloud jede Minute ab.
+
+> ⏱️ **Bis zu 30 Sekunden Verzögerung – bitte nicht mehrfach klicken.** Jede Änderung geht über die Cloud zum Gerät und wird von dort wieder zurückgemeldet. Das dauert bis zu ~30 Sekunden. In dieser Zeit zeigt die Entität bereits den gewählten Wert, und weitere Klicks auf dieselbe Entität werden mit einem Hinweis abgewiesen (Klickschutz). Die Modbus-Sensoren übernehmen den neuen Zustand ebenfalls erst mit dieser Verzögerung.
 
 > ⚠️ **Experimentell und inoffiziell.** Es ist die undokumentierte API hinter flow.hager.com; Hager kann sie jederzeit ändern. Fällt die Cloud aus, sind nur die Cloud-Entitäten nicht verfügbar – Modbus läuft weiter. Konten mit Zwei-Faktor-Anmeldung werden nicht unterstützt. Details zu den Endpunkten: [docs/cloud-api.md](docs/cloud-api.md). Login-Ablauf übernommen aus [hebrru/Hager-local](https://github.com/hebrru/Hager-local) (MIT).
 

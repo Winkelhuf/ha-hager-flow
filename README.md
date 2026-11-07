@@ -107,12 +107,16 @@ Modbus stays the main data source – everything is still read locally. Some set
 
 | Entity | Device | Portal equivalent |
 |---|---|---|
-| Charging priority (cloud) – *Car first / Battery first* | EMC | Settings → Solar priority |
-| Use battery for the car in solar mode (cloud) | EMC | Storage management → Solar mode |
-| Use battery for the car in boost mode (cloud) | EMC | Storage management → Boost mode |
-| Charging strategy (cloud) – *Solar surplus only / Solar + minimum charge / Solar + target time / Immediate charging* | Wallbox | Wallbox → Charging strategy |
+| Charging priority (cloud) – *Charging station first / Battery first* | EMC | Settings → Solar priority |
+| Use battery for the car in solar mode (cloud) ¹ | EMC | Storage management → Solar mode |
+| Use battery for the car in boost mode (cloud) ¹ | EMC | Storage management → Boost mode |
+| Charging strategy (cloud) – *Solar surplus only / Solar + minimum charge / Solar + target time / Boost charging* | Wallbox | Wallbox → Charging strategy |
+
+¹ Only usable with charging priority **"Charging station first"**. With "Battery first" the system would reject the change – both switches are then greyed out (unavailable).
 
 The Modbus sensors still report the current priority and discharge state; the cloud entities poll the cloud once a minute.
+
+> ⏱️ **Up to 30 seconds delay – please don't click repeatedly.** Every change travels through the cloud to the device and is reported back from there, which takes up to ~30 seconds. During that time the entity already shows the selected value, and further clicks on the same entity are rejected with a notice (click protection). The Modbus sensors also pick up the new state only after this delay.
 
 > ⚠️ **Experimental and unofficial.** This is the undocumented API behind flow.hager.com and Hager may change it at any time. If the cloud is down, only the cloud entities become unavailable – Modbus keeps running. Accounts with two-factor authentication are not supported. Endpoint details: [docs/cloud-api.md](docs/cloud-api.md). Login flow adapted from [hebrru/Hager-local](https://github.com/hebrru/Hager-local) (MIT).
 

@@ -14,6 +14,8 @@ USER_AGENT = (
 
 TOKEN_REFRESH_MARGIN = timedelta(minutes=2)
 CLOUD_SCAN_INTERVAL = timedelta(seconds=60)
+# So lange braucht eine Änderung über die Cloud bis zum Gerät und zurück
+CLOUD_COOLDOWN = timedelta(seconds=30)
 
 # Felder der Anlagen-Konfiguration (PUT /installations/{id}/config)
 CFG_BATTERY_BEFORE_CAR = "emsBatteryBeforeCarMode"

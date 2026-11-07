@@ -13,7 +13,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.exceptions import ServiceValidationError
 
-from .cloud.const import CFG_BATTERY_TO_CAR_BOOST, CFG_BATTERY_TO_CAR_SOLAR
+from .cloud.const import CFG_BATTERY_BEFORE_CAR, CFG_BATTERY_TO_CAR_BOOST, CFG_BATTERY_TO_CAR_SOLAR
 from .cloud.entity import HagerFlowCloudEntity, emc_device_info
 from .const import DOMAIN
 from .entity.base import HagerFlowEntity
@@ -52,7 +52,12 @@ CLOUD_CONFIG_SWITCHES: tuple[tuple[str, str, str], ...] = (
 
 
 class HagerFlowCloudConfigSwitch(HagerFlowCloudEntity, SwitchEntity):
-    """Ein Ja/Nein-Feld der Anlagen-Konfiguration in der Cloud (Speichermanagement)."""
+    """Ein Ja/Nein-Feld der Anlagen-Konfiguration in der Cloud (Speichermanagement).
+
+    Speicher fürs Auto ist nur bei Ladepriorität "Ladestation zuerst" zulässig –
+    bei "Batterie zuerst" lehnt das System die Änderung ab. Dann ist der Schalter
+    nicht verfügbar (ausgegraut).
+    """
 
     def __init__(self, coordinator, entry_id: str, key: str, field: str, icon: str) -> None:
         super().__init__(coordinator, entry_id, key, emc_device_info(entry_id))
@@ -60,13 +65,29 @@ class HagerFlowCloudConfigSwitch(HagerFlowCloudEntity, SwitchEntity):
         self._attr_icon = icon
 
     @property
+    def _config(self) -> dict[str, Any]:
+        return self.coordinator.data.config if self.coordinator.data else {}
+
+    @property
+    def _battery_first(self) -> bool:
+        return bool(self._config.get(CFG_BATTERY_BEFORE_CAR, False))
+
+    @property
+    def available(self) -> bool:
+        return super().available and bool(self._config) and not self._battery_first
+
+    @property
     def is_on(self) -> bool | None:
-        value = (self.coordinator.data.config if self.coordinator.data else {}).get(self._field)
-        return None if value is None else bool(value)
+        value = self._config.get(self._field)
+        return self._value(None if value is None else bool(value))
 
     async def _async_set(self, value: bool) -> None:
-        config = self.coordinator.data.config
-        await self._async_write(lambda: self.coordinator.api.async_set_config(config, {self._field: value}))
+        if self._battery_first:
+            raise ServiceValidationError(translation_domain=DOMAIN, translation_key="cloud_needs_car_first")
+        config = self._config
+        await self._async_write(
+            lambda: self.coordinator.api.async_set_config(config, {self._field: value}), value
+        )
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         await self._async_set(True)

@@ -23,7 +23,7 @@
       "power_prioritaet_ziel": {
         "name": "Charging Priority",
         "state": {
-          "car_first": "Car First",
+          "car_first": "Charging station first",
           "battery_first": "Battery First"
         }
       },
@@ -170,7 +170,7 @@
       "ladeprioritaet": {
         "name": "Charging priority (cloud)",
         "state": {
-          "car_first": "Car first",
+          "car_first": "Charging station first",
           "battery_first": "Battery first"
         }
       },
@@ -180,7 +180,7 @@
           "solar_only": "Solar surplus only",
           "solar_minimum": "Solar + minimum charge",
           "solar_delayed": "Solar + target time",
-          "immediate": "Immediate charging"
+          "immediate": "Boost charging"
         }
       }
     }
@@ -191,6 +191,12 @@
     },
     "cloud_write_failed": {
       "message": "Writing to the Hager flow cloud failed: {error}"
+    },
+    "cloud_cooldown": {
+      "message": "The cloud is still processing the last change. Please wait another {seconds} seconds."
+    },
+    "cloud_needs_car_first": {
+      "message": "Using the battery for the car is only possible with charging priority \"Charging station first\"."
     }
   },
   "options": {

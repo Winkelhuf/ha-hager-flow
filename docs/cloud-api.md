@@ -39,9 +39,9 @@ Jeder Schreibbefehl wird mit `POST …/installations/{id}/config/sync` an das Ge
 
 | Portal | Feld | Wert |
 |---|---|---|
-| Einstellungen → Solar Priorität: Priorität 2 = Energiespeicher | `emsBatteryBeforeCarMode` | `true` = Batterie vor Auto, `false` = Auto vor Batterie |
-| Speichermanagement → Solarmodus: Speicher nutzen | `emsBatteryToCarMode` | `true`/`false` |
-| Speichermanagement → Boost-Modus: Speicher nutzen | `emsWallboxEnforcePowerAssignment` | `true`/`false` |
+| Einstellungen → Solar Priorität: Priorität 2 = Energiespeicher | `emsBatteryBeforeCarMode` | `true` = Batterie zuerst, `false` = Ladestation zuerst |
+| Speichermanagement → Solarmodus: Speicher nutzen | `emsBatteryToCarMode` | `true`/`false` – nur bei `emsBatteryBeforeCarMode = false` |
+| Speichermanagement → Boost-Modus: Speicher nutzen | `emsWallboxEnforcePowerAssignment` | `true`/`false` – nur bei `emsBatteryBeforeCarMode = false` |
 
 Das Portal schickt `emsBatteryBeforeCarMode` immer mit, z. B.
 `{"emsBatteryBeforeCarMode": false, "emsBatteryToCarMode": true}`.
@@ -56,4 +56,14 @@ Body = `deviceName`, `parameters` (aktueller Stand) und `evseSubTypeParameters`.
 | PV-Überschussladen | `true` | `Disabled` | `[]` |
 | PV + Mindestladung | `true` | `Immediate` | 7× `{"minEnergy": "7"}` (kWh, je Wochentag) |
 | PV + Zieltermin | `true` | `Delayed` | 7× `{"daytime": "21600", "minEnergy": "7"}` (Sekunden ab Mitternacht) |
-| Sofortladen | `false` | `Disabled` | `[]` |
+| Boostladen | `false` | `Disabled` | `[]` |
+
+## Nicht vorhanden: „Speicher entladen bis x %“
+
+E3/DC-Speicher kennen eine Untergrenze, bis zu der der Speicher ins Auto entladen wird
+(z. B. 60 % für die Nacht behalten). In der Anlagen-Konfiguration, die das flow-Portal
+liest und schreibt (`GET/PUT …/installations/{id}/config`), gibt es dafür **kein Feld**,
+und das Portal bietet die Einstellung nicht an (Stand 07.11.2026). Vorhandene Felder:
+`emsWeatherRegulatedChargeEnabled`, `emsBatteryBeforeCarMode`, `emsBatteryToCarMode`,
+`emsWallboxEnforcePowerAssignment`, `eegActive`, `eegValue`, `mainFuse`, `phaseCount`,
+`gridPowerOffset`, `peakPowerPv`, `sgrCooldown` u. a.

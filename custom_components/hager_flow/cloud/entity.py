@@ -6,15 +6,19 @@ damit Lesen (Modbus) und Schreiben (Cloud) im selben Gerät erscheinen.
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
+from datetime import datetime
 import logging
+from typing import Any
 
 from homeassistant.const import EntityCategory
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..const import DOMAIN
 from .api import CloudWallbox
+from .const import CLOUD_COOLDOWN
 from .coordinator import HagerFlowCloudCoordinator
 from .errors import HagerCloudError
 
@@ -52,7 +56,12 @@ def wallbox_device_info(entry_id: str, wallbox: CloudWallbox, modbus_wallboxes: 
 
 
 class HagerFlowCloudEntity(CoordinatorEntity[HagerFlowCloudCoordinator]):
-    """Gemeinsame Logik: Name aus translations, Kategorie Konfiguration, Fehlerbehandlung."""
+    """Gemeinsame Logik: Name aus translations, Kategorie Konfiguration, Klickschutz, Fehler.
+
+    Die Cloud braucht bis zu ~30 s, bis eine Änderung am Gerät angekommen und wieder
+    zurückgemeldet ist. Solange zeigt die Entität den gewählten Wert (optimistisch) und
+    weist weitere Klicks mit einer Meldung ab – wie der Boost-Schalter der Wallbox.
+    """
 
     _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.CONFIG
@@ -62,12 +71,35 @@ class HagerFlowCloudEntity(CoordinatorEntity[HagerFlowCloudCoordinator]):
         self._attr_translation_key = key
         self._attr_unique_id = f"{entry_id}_cloud_{key}"
         self._attr_device_info = device_info
+        self._optimistic: Any = None
+        self._cooldown_until: datetime | None = None
 
-    async def _async_write(self, action: Callable[[], Awaitable[None]]) -> None:
-        """Schreibbefehl ausführen, Fehler übersetzt melden und Daten neu laden."""
+    @property
+    def _cooling_down(self) -> bool:
+        return self._cooldown_until is not None and datetime.now() < self._cooldown_until
+
+    def _value(self, actual: Any) -> Any:
+        """Während des Klickschutzes den gewählten Wert zeigen, danach den echten."""
+        return self._optimistic if self._cooling_down else actual
+
+    async def _async_write(self, action: Callable[[], Awaitable[None]], optimistic: Any) -> None:
+        """Schreibbefehl ausführen – mit Klickschutz, übersetzten Fehlern und Neuladen."""
+        if self._cooling_down:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="cloud_cooldown",
+                translation_placeholders={
+                    "seconds": str(int((self._cooldown_until - datetime.now()).total_seconds()) + 1)
+                },
+            )
+        self._optimistic = optimistic
+        self._cooldown_until = datetime.now() + CLOUD_COOLDOWN
+        self.async_write_ha_state()
         try:
             await action()
         except HagerCloudError as err:
+            self._cooldown_until = None
+            self.async_write_ha_state()
             _LOGGER.error("Schreiben in die Hager flow Cloud fehlgeschlagen: %s", err)
             raise HomeAssistantError(
                 translation_domain=DOMAIN,
@@ -76,3 +108,11 @@ class HagerFlowCloudEntity(CoordinatorEntity[HagerFlowCloudCoordinator]):
             ) from err
         finally:
             await self.coordinator.async_request_refresh()
+        # Nach Ablauf des Klickschutzes den echten Stand anzeigen
+        self.async_on_remove(
+            async_call_later(self.hass, CLOUD_COOLDOWN.total_seconds() + 1, self._async_cooldown_over)
+        )
+
+    async def _async_cooldown_over(self, _now: Any) -> None:
+        await self.coordinator.async_request_refresh()
+        self.async_write_ha_state()

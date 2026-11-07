@@ -23,7 +23,7 @@
       "power_prioritaet_ziel": {
         "name": "Priorité de charge",
         "state": {
-          "car_first": "Voiture d'abord",
+          "car_first": "Borne de recharge d'abord",
           "battery_first": "Batterie d'abord"
         }
       },
@@ -170,7 +170,7 @@
       "ladeprioritaet": {
         "name": "Priorité de charge (cloud)",
         "state": {
-          "car_first": "Voiture d'abord",
+          "car_first": "Borne de recharge d'abord",
           "battery_first": "Batterie d'abord"
         }
       },
@@ -180,7 +180,7 @@
           "solar_only": "Surplus solaire uniquement",
           "solar_minimum": "Solaire + charge minimale",
           "solar_delayed": "Solaire + heure cible",
-          "immediate": "Charge immédiate"
+          "immediate": "Charge boost"
         }
       }
     }
@@ -191,6 +191,12 @@
     },
     "cloud_write_failed": {
       "message": "L'écriture dans le cloud Hager flow a échoué : {error}"
+    },
+    "cloud_cooldown": {
+      "message": "Le cloud traite encore la dernière modification. Veuillez patienter encore {seconds} secondes."
+    },
+    "cloud_needs_car_first": {
+      "message": "L'utilisation de la batterie pour la voiture n'est possible qu'avec la priorité de charge « Borne de recharge d'abord »."
     }
   },
   "options": {
