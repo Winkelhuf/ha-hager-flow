@@ -10,6 +10,7 @@ import copy
 from dataclasses import dataclass, field
 import json
 import logging
+import math
 import time
 from typing import Any
 
@@ -18,10 +19,13 @@ from aiohttp import ClientError, ClientSession, ClientTimeout
 from .auth import CloudTokens, async_login, token_expiry
 from .const import (
     AUTH_BASE_URL,
+    BATTERY_MODULE_WH,
     CFG_BATTERY_BEFORE_CAR,
     CFG_BATTERY_TO_CAR_BOOST,
     CFG_BATTERY_TO_CAR_SOLAR,
+    CFG_EMERGENCY_RESERVE,
     DEFAULT_DELAYED_DAYTIME_S,
+    DISCHARGE_RESERVE_MARGIN_PCT,
     DEFAULT_MIN_ENERGY_KWH,
     EVSE_PARAMETER_KEYS,
     EVSE_SUBTYPE_KEYS,
@@ -142,6 +146,23 @@ def loading_priorisation_path(emc_serial: str) -> str:
     return f"{AUTH_BASE_URL}/wallboxes/{emc_serial}/loading-priorisation"
 
 
+def reserve_percent(reserve_wh: int | None, capacity_wh: int | None) -> float | None:
+    """Notstromreserve (Wh) als Prozent der Batteriekapazität."""
+    if reserve_wh is None or not capacity_wh:
+        return None
+    return max(0.0, min(100.0, reserve_wh / capacity_wh * 100))
+
+
+def min_discharge_soc(reserve_wh: int | None, capacity_wh: int | None) -> int:
+    """Kleinstmögliches Entladelimit: Reserve-% aufgerundet + Marge, gedeckelt auf 100.
+
+    Das Limit darf nie unter die Reserve und soll immer die Marge darüber liegen.
+    Ohne bekannte Kapazität greift nur die Marge als harte Untergrenze.
+    """
+    pct = reserve_percent(reserve_wh, capacity_wh) or 0.0
+    return int(min(100, math.ceil(pct) + DISCHARGE_RESERVE_MARGIN_PCT))
+
+
 def parse_loading_priorisation(payload: Any) -> dict[str, Any]:
     """Antwort von ``/loading-priorisation`` lesen – kann ein JSON-String sein (doppelt kodiert)."""
     if isinstance(payload, str):
@@ -194,6 +215,17 @@ class CloudSnapshot:
     emc_link_id: int | None
     emc_serial: str | None
     wallboxes: dict[int, CloudWallbox] = field(default_factory=dict)
+    # Speicher / Notstromreserve
+    storage_link_id: int | None = None
+    storage_name: str = "Batterie"
+    storage_config: dict[str, Any] = field(default_factory=dict)
+    reserve_wh: int | None = None
+    battery_count: int | None = None
+
+    @property
+    def capacity_wh(self) -> int | None:
+        """Nutzbare Batteriekapazität = Anzahl Module × 3000 Wh."""
+        return self.battery_count * BATTERY_MODULE_WH if self.battery_count else None
 
 
 # --------------------------------------------------------------------------- #
@@ -307,6 +339,14 @@ class HagerFlowCloudApi:
         active = [l for l in links if str(l.get("deviceType")).casefold() == "emc" and not l.get("stopAt")]
         return active[0] if active else None
 
+    async def async_get_device_link(self, device_type: str) -> dict[str, Any] | None:
+        """Aktiver Device-Link eines Typs (``emc`` oder ``storage``)."""
+        links = normalize_record_table(
+            await self._request("GET", self._inst_url("/device-links"))
+        )
+        active = [l for l in links if str(l.get("deviceType")).casefold() == device_type and not l.get("stopAt")]
+        return active[0] if active else None
+
     async def async_get_snapshot(self) -> CloudSnapshot:
         config = await self._request("GET", self._inst_url("/config")) or {}
         emc = await self.async_get_emc_link()
@@ -319,12 +359,56 @@ class HagerFlowCloudApi:
                     wb = CloudWallbox(int(evse["id"]), str(evse.get("deviceName") or ""), evse)
                     wb.discharge_soc = await self._async_read_discharge_soc(serial, wb.index)
                     wallboxes[int(evse["id"])] = wb
+
+        # Speicher-Device-Link: Notstromreserve (Wh) und Batteriemodul-Anzahl
+        storage = await self.async_get_device_link("storage")
+        storage_link_id: int | None = None
+        storage_name = "Batterie"
+        storage_config: dict[str, Any] = {}
+        reserve_wh: int | None = None
+        battery_count: int | None = None
+        if storage:
+            storage_link_id = int(storage["id"])
+            storage_name = str(storage.get("deviceName") or "Batterie")
+            storage_config = await self._async_read_storage_config(storage_link_id)
+            value = storage_config.get(CFG_EMERGENCY_RESERVE)
+            if isinstance(value, (int, float)):
+                reserve_wh = int(value)
+            battery_count = await self._async_read_battery_count(str(storage.get("deviceId") or ""))
+
         return CloudSnapshot(
             config=config,
             emc_link_id=int(emc["id"]) if emc else None,
-            emc_serial=str(emc.get("deviceId")) if emc else None,
+            emc_serial=serial,
             wallboxes=wallboxes,
+            storage_link_id=storage_link_id,
+            storage_name=storage_name,
+            storage_config=storage_config,
+            reserve_wh=reserve_wh,
+            battery_count=battery_count,
         )
+
+    async def _async_read_storage_config(self, storage_link_id: int) -> dict[str, Any]:
+        try:
+            cfg = await self._request("GET", self._inst_url(f"/device-links/{storage_link_id}/config/storage"))
+        except HagerCloudError as err:
+            _LOGGER.debug("Speicher-Konfiguration nicht lesbar: %s", err)
+            return {}
+        return cfg if isinstance(cfg, dict) else {}
+
+    async def _async_read_battery_count(self, storage_serial: str) -> int | None:
+        if not storage_serial:
+            return None
+        try:
+            data = await self._request(
+                "GET", f"{AUTH_BASE_URL}/storages/{storage_serial}/hardware/batteries/overview/0"
+            )
+        except HagerCloudError as err:
+            _LOGGER.debug("Batterie-Übersicht nicht lesbar: %s", err)
+            return None
+        if isinstance(data, dict) and isinstance(data.get("batDcbCount"), (int, float)):
+            return int(data["batDcbCount"])
+        return None
 
     async def _async_read_discharge_soc(self, emc_serial: str | None, index: int) -> int | None:
         """Entladegrenze lesen – bevorzugt dort, wohin wir auch schreiben (loading-priorisation).
@@ -377,6 +461,26 @@ class HagerFlowCloudApi:
             self._inst_url(f"/device-links/{emc_link_id}/sub/controlled/{wallbox.evse_id}"),
             build_evse_payload(wallbox.raw, strategy),
         )
+        await self.async_sync()
+
+    async def async_set_emergency_reserve(
+        self, storage_link_id: int, storage_config: dict[str, Any], storage_name: str, reserve_wh: int
+    ) -> None:
+        """Notstromreserve (Wh) in der Speicher-Konfiguration setzen.
+
+        Wie das Portal: PUT config/storage mit Reserve, Name und sgrUsedPower, dann die
+        Anlage als „zu synchronisieren" markieren und synchronisieren.
+        """
+        body = {
+            CFG_EMERGENCY_RESERVE: max(0, int(reserve_wh)),
+            "name": storage_config.get("name") or storage_name or "Batterie",
+            "sgrUsedPower": storage_config.get("sgrUsedPower", 0),
+        }
+        _LOGGER.debug("Setze Notstromreserve: %s", body)
+        await self._request(
+            "PUT", self._inst_url(f"/device-links/{storage_link_id}/config/storage"), body
+        )
+        await self._request("PUT", self._inst_url(""), {"needToBeSynchronize": True})
         await self.async_sync()
 
     async def async_set_discharge_soc(self, emc_serial: str, config: dict[str, Any], soc: int) -> None:

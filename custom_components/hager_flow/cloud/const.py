@@ -22,6 +22,15 @@ CFG_BATTERY_BEFORE_CAR = "emsBatteryBeforeCarMode"
 CFG_BATTERY_TO_CAR_SOLAR = "emsBatteryToCarMode"
 CFG_BATTERY_TO_CAR_BOOST = "emsWallboxEnforcePowerAssignment"
 
+# Notstromreserve: Feld in der Speicher-Konfiguration
+# (PUT /installations/{id}/device-links/{storageLinkId}/config/storage), in Wh
+CFG_EMERGENCY_RESERVE = "emergencyPowerCapacityReserve"
+# Kapazität je Batteriemodul (batDcbCount × 3000 Wh)
+BATTERY_MODULE_WH = 3000
+# Das Entladelimit (Bis Ladezustand) muss immer mindestens so viel Prozent
+# ÜBER der Notstromreserve liegen (und darf nie darunter)
+DISCHARGE_RESERVE_MARGIN_PCT = 10
+
 # Ladestrategien der Wallbox (sprachfreie Schlüssel -> Übersetzung in translations/*.json)
 STRATEGY_SOLAR_ONLY = "solar_only"
 STRATEGY_SOLAR_MINIMUM = "solar_minimum"

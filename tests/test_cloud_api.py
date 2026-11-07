@@ -335,3 +335,45 @@ def test_parse_loading_priorisation_garbage() -> None:
     assert parse_loading_priorisation(None) == {}
     assert parse_loading_priorisation("not json") == {}
     assert parse_loading_priorisation(5) == {}
+
+
+# --------------------------------------------------------------------------- #
+# Notstromreserve <-> Entladelimit (Kopplung)
+# --------------------------------------------------------------------------- #
+from custom_components.hager_flow.cloud.api import (  # noqa: E402
+    min_discharge_soc,
+    reserve_percent,
+)
+from custom_components.hager_flow.cloud.api import CloudSnapshot  # noqa: E402
+
+
+def test_reserve_percent() -> None:
+    # 500 Wh von 4×3000=12000 Wh ≈ 4,17 %
+    assert round(reserve_percent(500, 12000), 2) == 4.17
+    assert reserve_percent(0, 12000) == 0.0
+    assert reserve_percent(500, None) is None
+    assert reserve_percent(None, 12000) is None
+
+
+def test_min_discharge_soc_is_reserve_plus_margin() -> None:
+    # 4,17 % aufgerundet (5) + 10 = 15
+    assert min_discharge_soc(500, 12000) == 15
+    # exakt 10 % Reserve -> 20
+    assert min_discharge_soc(1200, 12000) == 20
+    # ohne Reserve nur die Marge
+    assert min_discharge_soc(0, 12000) == 10
+
+
+def test_min_discharge_soc_caps_at_100() -> None:
+    assert min_discharge_soc(12000, 12000) == 100  # 100 % + 10 -> gedeckelt
+    assert min_discharge_soc(11000, 12000) == 100  # 91,7->92 +10 -> gedeckelt
+
+
+def test_min_discharge_soc_without_capacity_uses_margin() -> None:
+    assert min_discharge_soc(500, None) == 10
+
+
+def test_snapshot_capacity_from_battery_count() -> None:
+    snap = CloudSnapshot(config={}, emc_link_id=1, emc_serial="x", battery_count=4)
+    assert snap.capacity_wh == 12000
+    assert CloudSnapshot(config={}, emc_link_id=1, emc_serial="x").capacity_wh is None

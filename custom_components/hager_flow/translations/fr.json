@@ -187,6 +187,9 @@
     "number": {
       "entladen_bis_ladezustand": {
         "name": "Décharger jusqu'au niveau de charge"
+      },
+      "notstromreserve": {
+        "name": "Réserve d'alimentation de secours"
       }
     }
   },

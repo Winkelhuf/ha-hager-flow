@@ -91,3 +91,30 @@ PUT https://e3dc.e3dc.com/wallboxes/{emcSeriennummer}/loading-priorisation   (20
   daher unbedingt aus `loading-priorisation` lesen, sonst wirkt es wie „fällt zurück“.
 - Am 07.11.2026 end-to-end verifiziert: Set `tillSoc=10` → Rücklesen `tillSoc=10` bleibt
   über mehrere Abrufe stehen.
+
+### Notstromreserve (Wh) und Kopplung ans Entladelimit
+
+Die Notstromreserve ist die Energie, die der Speicher für den Notstromfall zurückhält.
+Sie steht in der **Speicher-Konfiguration** (Wh):
+
+```
+GET/PUT https://installations.e3dc.com/installations/{id}/device-links/{storageLinkId}/config/storage
+```
+
+| Portal (flow → Einstellungen → Konfiguration → Speicher → Erweitert → Notstrom) | Feld | Wert |
+|---|---|---|
+| Reserve | `emergencyPowerCapacityReserve` | Wh |
+
+- `{storageLinkId}` ist der `id` des Device-Links mit `deviceType = storage`.
+- **Schreiben** wie das Portal: PUT config/storage mit `{emergencyPowerCapacityReserve, name, sgrUsedPower}`,
+  dann `PUT /installations/{id}` `{"needToBeSynchronize": true}`, dann `POST …/config/sync`.
+- **Batteriekapazität** für die Wh↔%-Umrechnung:
+  `GET https://e3dc.e3dc.com/storages/{storageSeriennummer}/hardware/batteries/overview/0`,
+  Feld `batDcbCount` (Anzahl Batteriemodule) × **3000 Wh** je Modul.
+- Verifiziert per Mitschnitt am 07.11.2026 (Set 600 → Reset 500 Wh; `batDcbCount=4`).
+
+**Kopplung (in der Integration umgesetzt):** Das Entladelimit „Bis Ladezustand" darf nie
+unter die Notstromreserve fallen und soll immer **10 % darüber** liegen. Umrechnung:
+`reserve% = emergencyPowerCapacityReserve / (batDcbCount × 3000) × 100`,
+Untergrenze des Limits = `ceil(reserve%) + 10` (auf 100 gedeckelt). Wird die Reserve erhöht,
+zieht das Limit automatisch nach.

@@ -112,10 +112,13 @@ Modbus stays the main data source – everything is still read locally. Some set
 | Use battery for the car in boost mode (cloud) ¹ | EMC | Storage management → Boost mode |
 | Charging strategy (cloud) – *Solar surplus only / Solar + minimum charge / Solar + target time / Boost charging* | Wallbox | Wallbox → Charging strategy |
 | Discharge down to state of charge (cloud) – 0–100 % ² | Wallbox | my.e3dc.com → Wallbox → discharge until SoC |
+| Emergency power reserve (cloud) – in Wh ³ | EMC | Configuration → Storage → Emergency power → Reserve |
 
 ¹ Only usable with charging priority **"Charging station first"**. With "Battery first" the system would reject the change – both switches are then greyed out (unavailable).
 
 ² The battery is discharged into the car down to this state of charge (0 % = no limit, e.g. keep 60 % for the night). This setting exists only in the E3/DC portal, not in the flow portal. It is only usable while discharge is enabled (see ¹); otherwise it is greyed out.
+
+³ Energy the battery keeps back for emergency power (in Wh). **Coupled to the discharge limit:** the limit can never fall below the reserve and always stays at least 10 % above it. The limit's lower bound is `reserve ÷ (battery modules × 3000 Wh)` + 10 %. Raising the reserve pulls the limit up automatically. Entity attributes show capacity, reserve % and the computed lower bound.
 
 The Modbus sensors still report the current priority and discharge state; the cloud entities poll the cloud once a minute.
 

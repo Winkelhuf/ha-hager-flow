@@ -187,6 +187,9 @@
     "number": {
       "entladen_bis_ladezustand": {
         "name": "Ontladen tot laadtoestand"
+      },
+      "notstromreserve": {
+        "name": "Noodstroomreserve"
       }
     }
   },
