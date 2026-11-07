@@ -29,8 +29,14 @@ META_REFRESH_RE = re.compile(
     re.IGNORECASE,
 )
 JS_REDIRECT_RE = re.compile(
-    r"""(?:window\.)?location(?:\.href)?\s*=\s*[\"']([^\"']+)[\"']""", re.IGNORECASE
+    r"""location(?:\.href)?\s*=\s*[\"']([^\"']+)[\"']|location\.(?:replace|assign)\(\s*[\"']([^\"']+)[\"']""",
+    re.IGNORECASE,
 )
+TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.IGNORECASE | re.DOTALL)
+SCRIPT_STYLE_RE = re.compile(r"<(script|style)\b.*?</\1>", re.IGNORECASE | re.DOTALL)
+TAG_RE = re.compile(r"<[^>]+>")
+URL_RE = re.compile(r"https?://[^\s\"'<>]+")
+SECRETISH_RE = re.compile(r"[A-Za-z0-9_\-.=+/]{40,}")
 _REDIRECTS = (301, 302, 303, 307, 308)
 
 
@@ -135,7 +141,7 @@ def _auto_post_form(body: str) -> tuple[str, dict[str, str]] | None:
         return None
     method = (_html_attribute(form.group(0), "method") or "get").casefold()
     action = _html_attribute(form.group(0), "action")
-    if method != "post" or not action:
+    if not action or (method != "post" and "samlresponse" not in decoded.casefold()):
         return None
     fields: dict[str, str] = {}
     for tag in INPUT_TAG_RE.finditer(decoded):
@@ -150,8 +156,33 @@ def _html_redirect(body: str) -> str | None:
     decoded = html_module.unescape(body)
     for pattern in (META_REFRESH_RE, JS_REDIRECT_RE, ANCHOR_HREF_RE):
         if match := pattern.search(decoded):
-            return html_module.unescape(match.group(1))
+            return html_module.unescape(next(g for g in match.groups() if g))
     return None
+
+
+def describe_page(url: str, body: str) -> str:
+    """Kurzbeschreibung einer unerwarteten Seite fürs Protokoll – ohne Query-Strings und Tokens."""
+
+    def strip(u: str) -> str:
+        parsed = urlparse(u)
+        return f"{parsed.netloc}{parsed.path}"
+
+    decoded = html_module.unescape(body or "")
+    title = TITLE_RE.search(decoded)
+    text = TAG_RE.sub(" ", SCRIPT_STYLE_RE.sub(" ", decoded))
+    text = SECRETISH_RE.sub("…", " ".join(text.split()))[:400]
+    forms = [
+        f"{(_html_attribute(f.group(0), 'method') or 'get').upper()} {strip(urljoin(url, _html_attribute(f.group(0), 'action') or ''))}"
+        for f in FORM_TAG_RE.finditer(decoded)
+    ][:3]
+    inputs = sorted({n for t in INPUT_TAG_RE.finditer(decoded) if (n := _html_attribute(t.group(0), "name"))})[:10]
+    urls = sorted({strip(u) for u in URL_RE.findall(decoded)})[:8]
+    scripts = len(SCRIPT_STYLE_RE.findall(decoded))
+    return (
+        f"Seite {strip(url)} ({len(body or '')} Zeichen) | Titel: {title.group(1).strip()[:80] if title else '-'}"
+        f" | Text: {text or '-'} | Formulare: {forms or '-'} | Felder: {inputs or '-'}"
+        f" | Skripte: {scripts} | Adressen: {urls or '-'}"
+    )
 
 
 async def async_login(email: str, password: str) -> CloudTokens:
@@ -244,7 +275,7 @@ async def async_login(email: str, password: str) -> CloudTokens:
                 if redirect := _html_redirect(body):
                     url = urljoin(current, redirect)
                     continue
-                raise fail("Unerwartete Antwort im Login-Ablauf")
+                raise fail(f"Unerwartete Antwort im Login-Ablauf – {describe_page(current, body)}")
     except ClientError as err:
         raise HagerCloudConnectionError("myHager-Login nicht erreichbar") from err
 

@@ -150,3 +150,43 @@ def test_payload_does_not_mutate_input() -> None:
 def test_payload_rejects_unknown_strategy() -> None:
     with pytest.raises(ValueError):
         build_evse_payload(EVSE, "turbo")
+
+
+# --------------------------------------------------------------------------- #
+# Login-Hilfen
+# --------------------------------------------------------------------------- #
+from custom_components.hager_flow.cloud.auth import (  # noqa: E402
+    _auto_post_form,
+    _html_redirect,
+    describe_page,
+)
+
+
+def test_html_redirect_location_replace() -> None:
+    body = '<script>window.location.replace("https://e3dc.e3dc.com/x?token=a&amp;reAuthToken=b")</script>'
+    assert _html_redirect(body) == "https://e3dc.e3dc.com/x?token=a&reAuthToken=b"
+
+
+def test_html_redirect_location_href() -> None:
+    assert _html_redirect("<script>location.href = '/next'</script>") == "/next"
+
+
+def test_saml_form_without_method_is_posted() -> None:
+    body = '<form action="https://e3dc.e3dc.com/acs"><input type="hidden" name="SAMLResponse" value="abc"></form>'
+    assert _auto_post_form(body) == ("https://e3dc.e3dc.com/acs", {"SAMLResponse": "abc"})
+
+
+def test_describe_page_hides_query_and_secrets() -> None:
+    secret = "eyJ" + "a" * 60
+    body = (
+        "<html><head><title>Fehler</title><script>var t='x';</script></head><body>"
+        f"<p>Cookie nicht gefunden {secret}</p>"
+        '<form method="post" action="/realms/customer/login-actions/x?session_code=SECRET">'
+        '<input name="username"></form>'
+        f'<a href="https://flow.hager.com/cb?token={secret}">weiter</a></body></html>'
+    )
+    text = describe_page("https://auth.hagerenergy.com/realms/customer/broker/after-post-broker-login?code=SECRET", body)
+    assert "Fehler" in text and "Cookie nicht gefunden" in text
+    assert "POST auth.hagerenergy.com/realms/customer/login-actions/x" in text
+    assert "flow.hager.com/cb" in text and "username" in text
+    assert "SECRET" not in text and secret not in text
