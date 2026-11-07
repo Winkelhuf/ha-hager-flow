@@ -115,7 +115,7 @@ Modbus stays the main data source – everything is still read locally. Some set
 
 ¹ Only usable with charging priority **"Charging station first"**. With "Battery first" the system would reject the change – both switches are then greyed out (unavailable).
 
-² The battery is discharged into the car down to this state of charge (0 % = no limit, e.g. keep 60 % for the night). This setting exists only in the E3/DC portal, not in the flow portal; it only appears when your wallbox configuration provides the field.
+² The battery is discharged into the car down to this state of charge (0 % = no limit, e.g. keep 60 % for the night). This setting exists only in the E3/DC portal, not in the flow portal. It is only usable while discharge is enabled (see ¹); otherwise it is greyed out.
 
 The Modbus sensors still report the current priority and discharge state; the cloud entities poll the cloud once a minute.
 

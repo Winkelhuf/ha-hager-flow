@@ -84,6 +84,10 @@ PUT https://e3dc.e3dc.com/wallboxes/{emcSeriennummer}/loading-priorisation   (20
 - Der Endpunkt setzt den **ganzen Block**, deshalb die drei Flags aus der Anlagen-Konfig
   mitschicken. `tillSoc` wird nur gesendet/ist nur wirksam, wenn die Entladung aktiv ist
   (nicht „Batterie zuerst“, mindestens ein Modus erlaubt).
-- **Lesen** des aktuellen Werts weiter über `GET …/wallboxes/{sn}/{index}/configuration`,
-  Feld `soc`.
-- Per Mitschnitt am 07.11.2026 verifiziert (Set `{…,"tillSoc":10}`, Reset ohne `tillSoc`).
+- **Lesen** des aktuellen Werts über `GET …/wallboxes/{sn}/loading-priorisation`, Feld
+  `tillSoc` (Antwort kann ein JSON-String sein). Das ist die maßgebliche Quelle.
+  `…/wallboxes/{sn}/{index}/configuration` → `soc` dient nur als Rückfallebene; auf einem
+  **flow**-EMC bleibt `soc` konstant 0, obwohl `tillSoc` den geschriebenen Wert hält –
+  daher unbedingt aus `loading-priorisation` lesen, sonst wirkt es wie „fällt zurück“.
+- Am 07.11.2026 end-to-end verifiziert: Set `tillSoc=10` → Rücklesen `tillSoc=10` bleibt
+  über mehrere Abrufe stehen.
