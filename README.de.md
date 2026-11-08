@@ -87,14 +87,8 @@ Um diese Integration zu nutzen, muss dein Setup folgende Mindestanforderungen er
 ### 🌡️ Dynamische SG-Ready-Sensoren (falls erkannt)
 *   **SG-Ready-Status** (Übersetzter Zustand: *Gesperrt*, *Normalbetrieb*, *Einschaltempfehlung*, *Einschaltbefehl*)
 
-### ☁️ Nur-Cloud-Steuerungen (optional, bei aktiviertem Cloud-Zugang)
-*   **Ladepriorität (Cloud)** – *Ladestation zuerst* / *Batterie zuerst*
-*   **Speicher fürs Auto – Solar- / Boost-Modus (Cloud)** – zwei Schalter, nur bei „Ladestation zuerst"
-*   **Ladestrategie (Cloud)** je Wallbox – *PV-Überschussladen* / *PV + Mindestladung* / *PV + Zieltermin* / *Boostladen*
-*   **Entladen bis Ladezustand (Cloud)** – Untergrenze folgt der Notstromreserve; 100 % = keine Entladung ins Auto
-*   **Notstromreserve (Cloud)** – in Wh, gekoppelt ans Entladelimit
-
-Details, Grenzen und die Sicherheitskopplung siehe [Optional: Cloud-Zugang für erweiterte Funktionen](#-optional-cloud-zugang-für-erweiterte-funktionen).
+### ☁️ Nur-Cloud-Steuerungen (optional)
+Mit aktiviertem Cloud-Zugang kommen einige reine Schreib-Steuerungen hinzu (Ladepriorität, Entladung ins Auto, Ladestrategie, Entladelimit, Notstromreserve). Vollständig gelistet – mit Details, Grenzen und Sicherheitskopplung – unter [Optional: Cloud-Zugang für erweiterte Funktionen](#-optional-cloud-zugang-für-erweiterte-funktionen).
 
 ---
 

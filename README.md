@@ -87,14 +87,8 @@ To use this integration, your setup must meet the following minimum requirements
 ### 🌡️ Dynamic SG Ready Sensors (if detected)
 *   **SG Ready Status** (Translated state: *Blocked*, *Normal Operation*, *Start Recommendation*, *Start Command*)
 
-### ☁️ Cloud-only Controls (optional, if cloud access is enabled)
-*   **Charging priority (cloud)** – *Charging station first* / *Battery first*
-*   **Use battery for the car — solar mode / boost mode (cloud)** – two switches, only while "Charging station first" is active
-*   **Charging strategy (cloud)** per wallbox – *Solar surplus only* / *Solar + minimum charge* / *Solar + target time* / *Boost charging*
-*   **Discharge down to state of charge (cloud)** – lower bound follows the emergency reserve; 100 % = no discharge into the car
-*   **Emergency power reserve (cloud)** – in Wh, coupled to the discharge limit
-
-See [Optional: Cloud Access for Extended Features](#-optional-cloud-access-for-extended-features) for details, limits and the safety coupling.
+### ☁️ Cloud-only Controls (optional)
+Enabling cloud access adds a few write-only controls (charging priority, battery-to-car discharge, charging strategy, discharge limit, emergency reserve). They're listed with all details, limits and the safety coupling under [Optional: Cloud Access for Extended Features](#-optional-cloud-access-for-extended-features).
 
 ---
 
