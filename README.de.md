@@ -98,24 +98,15 @@ Details, Grenzen und die Sicherheitskopplung siehe [Optional: Cloud-Zugang für 
 
 ---
 
-## ⚠️ Wichtiger Hinweis: Wallbox-Boost-Modus-Synchronisation & Cloud-Latenz
+## ⚠️ Schreibverzögerung & der 30-Sekunden-Klickschutz
 
-Beim Umschalten des **Witty-Boost-Modus-Schalters** schreibt das zugrunde liegende Modbus-Backend direkt in Register `4631`. Allerdings verursachen die interne Zustandsmaschine von Hager und die Cloud-Synchronisationslogik eine **Rückmeldeverzögerung** (bis zu 20 Sekunden), bevor das Register den aktualisierten Wert widerspiegelt.
-
-Um schnelles Hin-und-her-Schalten (bei dem der Schalter wartend auf die Cloud hin- und herspringt) zu verhindern und versehentliche Doppelklicks in der UI zu vermeiden, implementiert diese Integration einen **30-Sekunden-Cloud-Latenz-Cooldown-Filter**:
-
-1. **Sofortige Reaktion:** Das Umschalten setzt die UI sofort auf den gewünschten Zielzustand.
-2. **UI-Sperre:** Der Schalter wird für **genau 30 Sekunden** sofort grau (**deaktiviert**).
-3. **Hintergrundverarbeitung:** Pymodbus sendet den Befehl und gibt der Hardware ausreichend Zeit, die Zustandsänderung zu verarbeiten.
-4. **Wieder-Aktivierung:** Nach 30 Sekunden wird die Sperre aufgehoben, der Schalter wird wieder farbig/klickbar, und das normale Echtzeit-Modbus-Polling läuft weiter.
+Hager bestätigt einen Schreibvorgang erst nach der geräteeigenen Zustandsmaschine/Cloud-Synchronisation – beim Modbus-**Boost-Schalter** (Register `4631`) dauert das bis zu ~20 s. Um Hin-und-her-Springen und versehentliche Doppelklicks zu vermeiden, springt der Schalter sofort auf deinen Zielzustand und wird dann für **30 Sekunden** ausgegraut, bevor das normale Polling weiterläuft. Die optionalen [Cloud-Entitäten](#-optional-cloud-zugang-für-erweiterte-funktionen) nutzen denselben 30-Sekunden-Klickschutz.
 
 ---
 
 ## ☁️ Optional: Cloud-Zugang für erweiterte Funktionen
 
-Modbus bleibt die Hauptquelle – alles wird weiterhin lokal gelesen. Einige Einstellungen sind per Modbus aber **nicht beschreibbar**. Dafür lässt sich zusätzlich der Cloud-Zugang des flow-Webportals aktivieren:
-
-**Einstellungen → Geräte & Dienste → Hager flow → Konfigurieren** → *Cloud-Zugang aktivieren*, myHager-E-Mail und -Passwort eingeben. Die Anlage wird über die per Modbus gelesene EMC-Seriennummer automatisch erkannt.
+Modbus bleibt die Hauptquelle – alles wird weiterhin lokal gelesen. Einige Einstellungen sind per Modbus aber **nicht beschreibbar**; dafür lässt sich optional der Cloud-Zugang aktivieren (siehe [Konfiguration](#-konfiguration)). Er ergänzt diese Steuerungen:
 
 | Entität | Gerät | Entspricht im Portal |
 |---|---|---|
@@ -132,9 +123,7 @@ Modbus bleibt die Hauptquelle – alles wird weiterhin lokal gelesen. Einige Ein
 
 ³ Energie, die der Speicher für den Notstromfall zurückhält (in Wh). **Gekoppelt ans Entladelimit:** Das Limit kann nie unter die Reserve fallen und liegt immer mindestens 10 % darüber. Die Untergrenze des Limits ergibt sich aus `Reserve ÷ (Anzahl Batteriemodule × 3000 Wh)` + 10 %. Erhöhst du die Reserve, zieht das Limit automatisch nach. Attribute der Entität zeigen Kapazität, Reserve-% und die errechnete Untergrenze. Hinweis: Das Setzen der Reserve kann das Entladelimit am Gerät kurz auf 0 zurücksetzen – die Integration korrigiert das bei aktiver Entladung automatisch wieder auf die Untergrenze.
 
-Die aktuellen Werte von Ladepriorität und Entladung lesen weiterhin die Modbus-Sensoren; die Cloud-Entitäten fragen die Cloud jede Minute ab.
-
-> ⏱️ **Bis zu 30 Sekunden Verzögerung – bitte nicht mehrfach klicken.** Jede Änderung geht über die Cloud zum Gerät und wird von dort wieder zurückgemeldet. Das dauert bis zu ~30 Sekunden. In dieser Zeit zeigt die Entität bereits den gewählten Wert, und weitere Klicks auf dieselbe Entität werden mit einem Hinweis abgewiesen (Klickschutz). Die Modbus-Sensoren übernehmen den neuen Zustand ebenfalls erst mit dieser Verzögerung.
+Die aktuellen Werte von Ladepriorität und Entladung lesen weiterhin die Modbus-Sensoren; die Cloud-Entitäten fragen jede Minute ab und haben denselben **30-Sekunden-Klickschutz** (eine Änderung braucht bis zu ~30 s zum Gerät und zurück).
 
 > ⚠️ **Experimentell und inoffiziell.** Es ist die undokumentierte API hinter flow.hager.com; Hager kann sie jederzeit ändern. Fällt die Cloud aus, sind nur die Cloud-Entitäten nicht verfügbar – Modbus läuft weiter. Konten mit Zwei-Faktor-Anmeldung werden nicht unterstützt. Details zu den Endpunkten: [docs/cloud-api.md](docs/cloud-api.md). Login-Ablauf übernommen aus [hebrru/Hager-local](https://github.com/hebrru/Hager-local) (MIT).
 
@@ -233,24 +222,38 @@ Da diese Integration noch nicht Teil des HACS-Standard-Stores ist, kannst du sie
 
 ## ⚙️ Konfiguration
 
-1. Navigiere in Home Assistant zu **Einstellungen** > **Geräte & Dienste**.
-2. Klicke unten rechts auf den Button **+ Integration hinzufügen**.
-3. Suche nach **„Hager flow Modbus"** und wähle sie aus.
-4. Gib die **IP-Adresse** deines lokalen Hager-flow-Systems (XEM470) ein (Standard-Fallback: `192.168.70.30`).
-5. Klicke auf **Absenden**. Die Integration startet automatisch die Discovery-Engine und füllt dein Dashboard mit all deiner aktiven lokalen Hardware, sauber gruppiert in eigenständige Geräte mit schönen, integrierten Marken-Logos!
+Die Einrichtung läuft in zwei Stufen: die **lokale Modbus**-Verbindung (alles, was du zum Überwachen und für die meiste Steuerung brauchst) und – optional – der **Cloud-Zugang** für die wenigen zusätzlichen Schreibfunktionen.
+
+### 1. Lokale Einrichtung (Modbus – erforderlich)
+
+1. **Einstellungen → Geräte & Dienste → + Integration hinzufügen**, nach **„Hager flow Modbus Local + API"** suchen.
+2. Nur die **IP-Adresse** deines XEM470 eingeben (Vorgabe: `192.168.70.30`) und **Absenden**.
+3. Fertig – die Auto-Discovery ordnet deine Hardware in saubere, geräteweise Entitäten. Mehr ist nicht einzugeben.
+
+<!-- Screenshot: eigenen einfügen, z. B. ![Integration hinzufügen – nur IP](docs/images/setup-1-ip.png) -->
+
+### 2. Cloud-Zugang (optional – was Modbus nicht schreiben kann)
+
+1. **Einstellungen → Geräte & Dienste → Hager flow → Konfigurieren**.
+2. **Cloud-Zugang aktivieren** einschalten und **myHager**-E-Mail und -Passwort eingeben.
+3. Die passende Anlage wird automatisch über die per Modbus gelesene EMC-Seriennummer erkannt.
+
+<!-- Screenshot: eigenen einfügen, z. B. ![Konfigurieren – Cloud aktivieren](docs/images/setup-2-cloud.png) -->
+
+Damit kommen die [Nur-Cloud-Steuerungen](#-optional-cloud-zugang-für-erweiterte-funktionen) dazu (Ladepriorität, Entladung ins Auto, Ladestrategie, Entladelimit, Notstromreserve). Über **Konfigurieren** jederzeit wieder abschaltbar.
 
 > [!TIP]
-> Da die Integration beim ersten Laden eine tiefgehende Netzwerk-Scan-Matrix ausführt: Falls du physische RS485-Verbindungen änderst (RTU-Zähler oder Wallboxen hinzufügst/entfernst), lade einfach die Integration neu oder starte Home Assistant neu, um eine erneute Auto-Discovery auszulösen.
+> Wenn du physische RS485-Verkabelung änderst (Zähler oder Wallboxen hinzufügen/entfernen), lade die Integration neu oder starte Home Assistant neu, um die Auto-Discovery erneut auszuführen.
 
 ---
 
 ## 🛠️ Tech-Stack & Architektur
 
-Diese Integration nutzt das moderne, asynchrone **DataUpdateCoordinator**-Designmuster, um das Abfragen von Registern zu zusammenhängenden Blockanfragen alle 5 Sekunden zu bündeln. Sie ist nativ auf Konformität mit den modernen **Pymodbus-3.9+-bis-3.11+-API-Signaturen** ausgelegt und läuft unter aktuellen Umgebungen (Python 3.12 bis Python 3.14).
-
-- Sämtliche Mehr-Byte-Datendekodierungen laufen direkt über native Client-Speicherkonvertierungen (`convert_from_registers`).
-- Eindeutige IDs sind kryptografisch über `entry.entry_id`-Strings gebunden, um Konflikte zwischen mehreren Installationen zu verhindern.
-- Markenmaterialien werden nativ im Unterverzeichnis `/brand` gespeichert, konform mit modernen lokalen Render-Spezifikationen, ohne externe Tracking-Pixel zu laden.
+- Asynchroner **`DataUpdateCoordinator`**, bündelt Register-Abfragen alle 5 Sekunden in Blöcke.
+- Ausgelegt für **Pymodbus 3.9–3.11** auf **Python 3.12–3.14**; Dekodierung über natives `convert_from_registers`.
+- Eindeutige IDs pro Config-Entry (`entry.entry_id`), sodass mehrere Installationen nie kollidieren.
+- Markenmaterialien lokal aus `/brand` – keine externen Aufrufe.
+- Optionale Cloud-Ebene: eigener Coordinator und Eintrags-Optionen; ein Cloud-Ausfall betrifft Modbus nie.
 
 ---
 

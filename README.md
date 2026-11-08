@@ -64,7 +64,7 @@ To use this integration, your setup must meet the following minimum requirements
 *   **Grid Power** (Total Grid Power in W)
 *   **Battery Power** (Battery Charge/Discharge in W)
 *   **Autarky / Self-Consumption Last Hour** (Hourly statistics in %)
-*   **Charging Priority** (Translated state: *Car First* / *Battery First*)
+*   **Charging Priority** (Translated state: *Charging station first* / *Battery first*)
 *   **Battery Discharge into Car** (Translated state: *Allowed* / *Forbidden*)
 *   **Device Info:** System Serial Number, Mainboard Firmware Version
 *   🔋 **Total PV Energy, House Consumption Energy** (kWh, derived) — see [Energy Dashboard Support](#-home-assistant-energy-dashboard-support)
@@ -98,24 +98,15 @@ See [Optional: Cloud Access for Extended Features](#-optional-cloud-access-for-e
 
 ---
 
-## ⚠️ Important Information: Wallbox Boost Mode Sync & Cloud Latency
+## ⚠️ Write latency & the 30-second click protection
 
-When toggling the **Witty Boost Mode Switch**, the underlying Modbus backend writes directly to register `4631`. However, Hager's internal state machine processing and cloud synchronization logic cause a **feedback delay** (up to 20 seconds) before the register reflects the updated value.
-
-To prevent rapid toggle-looping (where the switch jumps back and forth while waiting for the cloud) and to eliminate UI accidental double-clicks, this integration implements a **30-second Cloud-Latency Cooldown Filter**:
-
-1. **Immediate Reaction:** Toggling the switch flips the UI immediately to your desired target state.
-2. **UI Lockout:** The switch instantly turns grey (**Disabled**) for **exactly 30 seconds**.
-3. **Background Processing:** Pymodbus pushes the command and gives the hardware ample time to process the state change.
-4. **Re-Arming:** After 30 seconds, the lockout releases, the switch becomes colorful/clickable again, and normal real-time Modbus polling resumes.
+Hager's device confirms a write only after its own state-machine/cloud sync — for the Modbus **Boost switch** (register `4631`) that's up to ~20 s. To avoid flip-flopping and accidental double-clicks, the switch jumps to your target state immediately, then greys out for **30 seconds** before normal polling resumes. The optional [cloud entities](#-optional-cloud-access-for-extended-features) use the same 30-second click protection.
 
 ---
 
 ## ☁️ Optional: Cloud Access for Extended Features
 
-Modbus stays the main data source – everything is still read locally. Some settings, however, are **not writable via Modbus**. For those you can additionally enable the cloud access used by the flow web portal:
-
-**Settings → Devices & services → Hager flow → Configure** → *Enable cloud access*, enter your myHager e-mail and password. The installation is matched automatically via the EMC serial number read over Modbus.
+Modbus stays the main data source — everything is still read locally. A few settings are **not writable via Modbus**; for those you can optionally enable cloud access (see [Configuration](#-configuration)). It adds these controls:
 
 | Entity | Device | Portal equivalent |
 |---|---|---|
@@ -132,9 +123,7 @@ Modbus stays the main data source – everything is still read locally. Some set
 
 ³ Energy the battery keeps back for emergency power (in Wh). **Coupled to the discharge limit:** the limit can never fall below the reserve and always stays at least 10 % above it. The limit's lower bound is `reserve ÷ (battery modules × 3000 Wh)` + 10 %. Raising the reserve pulls the limit up automatically. Entity attributes show capacity, reserve % and the computed lower bound. Note: setting the reserve can briefly reset the discharge limit to 0 on the device – the integration automatically corrects it back to the lower bound while discharge is enabled.
 
-The Modbus sensors still report the current priority and discharge state; the cloud entities poll the cloud once a minute.
-
-> ⏱️ **Up to 30 seconds delay – please don't click repeatedly.** Every change travels through the cloud to the device and is reported back from there, which takes up to ~30 seconds. During that time the entity already shows the selected value, and further clicks on the same entity are rejected with a notice (click protection). The Modbus sensors also pick up the new state only after this delay.
+The Modbus sensors still report the current priority and discharge state; the cloud entities poll once a minute and carry the same **30-second click protection** (a change takes up to ~30 s to travel to the device and back).
 
 > ⚠️ **Experimental and unofficial.** This is the undocumented API behind flow.hager.com and Hager may change it at any time. If the cloud is down, only the cloud entities become unavailable – Modbus keeps running. Accounts with two-factor authentication are not supported. Endpoint details: [docs/cloud-api.md](docs/cloud-api.md). Login flow adapted from [hebrru/Hager-local](https://github.com/hebrru/Hager-local) (MIT).
 
@@ -233,24 +222,38 @@ Since this integration is not yet part of the HACS default store, you can easily
 
 ## ⚙️ Configuration
 
-1. In Home Assistant, navigate to **Settings** > **Devices & Services**.
-2. Click the **+ Add Integration** button in the bottom right corner.
-3. Search for **"Hager flow Modbus Local + API"** and select it.
-4. Enter the **IP Address** of your local Hager flow system (XEM470) (Default fallback preset: `192.168.70.30`).
-5. Click **Submit**. The integration will automatically fire up the discovery engine and populate your dashboard with all your active local hardware grouped cleanly into distinct devices with beautiful integrated brand logos!
+Setup has two stages: the **local Modbus** connection (all you need for monitoring and most control), and — optionally — **cloud access** for the few extra write functions.
+
+### 1. Local setup (Modbus — required)
+
+1. **Settings → Devices & Services → + Add Integration**, search for **"Hager flow Modbus Local + API"**.
+2. Enter only the **IP address** of your XEM470 (preset: `192.168.70.30`) and click **Submit**.
+3. Done — Auto-Discovery maps your hardware into clean, per-device entities. Nothing else to fill in.
+
+<!-- Screenshot: add your own, e.g. ![Add integration — IP only](docs/images/setup-1-ip.png) -->
+
+### 2. Cloud access (optional — settings Modbus can't write)
+
+1. **Settings → Devices & Services → Hager flow → Configure**.
+2. Turn on **Enable cloud access** and enter your **myHager** e-mail and password.
+3. The matching installation is detected automatically from the EMC serial already read over Modbus.
+
+<!-- Screenshot: add your own, e.g. ![Configure — enable cloud](docs/images/setup-2-cloud.png) -->
+
+This adds the [cloud-only controls](#-optional-cloud-access-for-extended-features) (charging priority, battery-to-car, charging strategy, discharge limit, emergency reserve). Toggle it back off anytime via **Configure**.
 
 > [!TIP]
-> Since the integration runs a deep network scanning matrix upon initial load, if you alter physical RS485 connections (adding/removing RTU meters or wallboxes), simply reload the integration or restart Home Assistant to trigger a fresh Auto-Discovery sequence.
+> If you change physical RS485 wiring (adding/removing meters or wallboxes), reload the integration or restart Home Assistant to re-run Auto-Discovery.
 
 ---
 
 ## 🛠️ Tech Stack & Architecture
 
-This integration utilizes the modern async **DataUpdateCoordinator** design pattern to group register polling into single cohesive block requests every 5 seconds. It is built natively to comply with modern **Pymodbus 3.9+ up to 3.11+ API signatures** running under high-tier environments (Python 3.12 through Python 3.14). 
-
-- All multi-byte data decodings are mapped directly through native client memory conversions (`convert_from_registers`).
-- Unique IDs are bound cryptographically via `entry.entry_id` strings preventing cross-talk collisions across multiple installations.
-- Brand assets are stored natively in the `/brand` subdirectory conforming to modern local rendering specifications without pulling external tracking pixels.
+- Async **`DataUpdateCoordinator`**, polling grouped register blocks every 5 seconds.
+- Built for **Pymodbus 3.9–3.11** on **Python 3.12–3.14**; decoding via native `convert_from_registers`.
+- Unique IDs namespaced per config entry (`entry.entry_id`), so multiple installations never collide.
+- Brand assets served locally from `/brand` — no external calls.
+- Optional cloud layer: separate coordinator and config-entry options; a cloud outage never affects Modbus.
 
 ---
 
