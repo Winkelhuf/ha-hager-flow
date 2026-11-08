@@ -230,7 +230,7 @@ Setup has two stages: the **local Modbus** connection (all you need for monitori
 2. Enter only the **IP address** of your XEM470 (preset: `192.168.70.30`) and click **Submit**.
 3. Done — Auto-Discovery maps your hardware into clean, per-device entities. Nothing else to fill in.
 
-<!-- Screenshot: add your own, e.g. ![Add integration — IP only](docs/images/setup-1-ip.png) -->
+![Add integration — enter the IP address only](docs/images/setup-1-ip.png)
 
 ### 2. Cloud access (optional — settings Modbus can't write)
 
@@ -238,7 +238,7 @@ Setup has two stages: the **local Modbus** connection (all you need for monitori
 2. Turn on **Enable cloud access** and enter your **myHager** e-mail and password.
 3. The matching installation is detected automatically from the EMC serial already read over Modbus.
 
-<!-- Screenshot: add your own, e.g. ![Configure — enable cloud](docs/images/setup-2-cloud.png) -->
+![Configure — enable cloud access and enter your myHager login](docs/images/setup-2-cloud.png)
 
 This adds the [cloud-only controls](#-optional-cloud-access-for-extended-features) (charging priority, battery-to-car, charging strategy, discharge limit, emergency reserve). Toggle it back off anytime via **Configure**.
 
