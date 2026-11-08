@@ -108,14 +108,12 @@ Hager's device confirms a write only after its own state-machine/cloud sync — 
 
 Modbus stays the main data source — everything is still read locally. A few settings are **not writable via Modbus**; for those you can optionally enable cloud access (see [Configuration](#-configuration)). It adds these controls:
 
-| Entity | Device | Portal equivalent |
-|---|---|---|
-| Charging priority (cloud) – *Charging station first / Battery first* | EMC | Settings → Solar priority |
-| Use battery for the car in solar mode (cloud) ¹ | EMC | Storage management → Solar mode |
-| Use battery for the car in boost mode (cloud) ¹ | EMC | Storage management → Boost mode |
-| Charging strategy (cloud) – *Solar surplus only / Solar + minimum charge / Solar + target time / Boost charging* | Wallbox | Wallbox → Charging strategy |
-| Discharge down to state of charge (cloud) ² | Wallbox | my.e3dc.com → Wallbox → discharge until SoC |
-| Emergency power reserve (cloud) – in Wh ³ | EMC | Configuration → Storage → Emergency power → Reserve |
+- **Charging priority (cloud)** – *Charging station first / Battery first*
+- **Use battery for the car in solar mode (cloud)** ¹
+- **Use battery for the car in boost mode (cloud)** ¹
+- **Charging strategy (cloud)** – *Solar surplus only / Solar + minimum charge / Solar + target time / Boost charging*
+- **Discharge down to state of charge (cloud)** ²
+- **Emergency power reserve (cloud)** – in Wh ³
 
 ¹ Only usable with charging priority **"Charging station first"**. With "Battery first" the system would reject the change – both switches are then greyed out (unavailable).
 

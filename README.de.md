@@ -108,14 +108,12 @@ Hager bestätigt einen Schreibvorgang erst nach der geräteeigenen Zustandsmasch
 
 Modbus bleibt die Hauptquelle – alles wird weiterhin lokal gelesen. Einige Einstellungen sind per Modbus aber **nicht beschreibbar**; dafür lässt sich optional der Cloud-Zugang aktivieren (siehe [Konfiguration](#-konfiguration)). Er ergänzt diese Steuerungen:
 
-| Entität | Gerät | Entspricht im Portal |
-|---|---|---|
-| Ladepriorität (Cloud) – *Ladestation zuerst / Batterie zuerst* | EMC | Einstellungen → Solar Priorität |
-| Speicher fürs Auto im Solarmodus (Cloud) ¹ | EMC | Speichermanagement → Solarmodus |
-| Speicher fürs Auto im Boost-Modus (Cloud) ¹ | EMC | Speichermanagement → Boost-Modus |
-| Ladestrategie (Cloud) – *PV-Überschussladen / PV + Mindestladung / PV + Zieltermin / Boostladen* | Wallbox | Wallbox → Ladestrategie |
-| Entladen bis Ladezustand (Cloud) ² | Wallbox | my.e3dc.com → Wallbox → Bis Ladezustand |
-| Notstromreserve (Cloud) – in Wh ³ | EMC | Konfiguration → Speicher → Notstrom → Reserve |
+- **Ladepriorität (Cloud)** – *Ladestation zuerst / Batterie zuerst*
+- **Speicher fürs Auto im Solarmodus (Cloud)** ¹
+- **Speicher fürs Auto im Boost-Modus (Cloud)** ¹
+- **Ladestrategie (Cloud)** – *PV-Überschussladen / PV + Mindestladung / PV + Zieltermin / Boostladen*
+- **Entladen bis Ladezustand (Cloud)** ²
+- **Notstromreserve (Cloud)** – in Wh ³
 
 ¹ Nur mit der Ladepriorität **„Ladestation zuerst“** nutzbar. Bei „Batterie zuerst“ würde das System die Änderung ablehnen – die beiden Schalter sind dann ausgegraut (nicht verfügbar).
 
