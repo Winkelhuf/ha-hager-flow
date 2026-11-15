@@ -377,3 +377,35 @@ def test_snapshot_capacity_from_battery_count() -> None:
     snap = CloudSnapshot(config={}, emc_link_id=1, emc_serial="x", battery_count=4)
     assert snap.capacity_wh == 12000
     assert CloudSnapshot(config={}, emc_link_id=1, emc_serial="x").capacity_wh is None
+
+
+from custom_components.hager_flow.cloud.api import guard_discharge_target  # noqa: E402
+
+
+def test_guard_valid_value_is_remembered_no_fix() -> None:
+    # 85 >= floor 15 -> als Wunschwert merken, keine Korrektur
+    assert guard_discharge_target(85, None, 15) == (85, None)
+    assert guard_discharge_target(15, 85, 15) == (15, None)  # exakt floor ist gültig
+
+
+def test_guard_sync_reset_restores_desired() -> None:
+    # Sync-Reset auf 0 -> zurück auf gemerkte 85 (nicht auf floor!)
+    assert guard_discharge_target(0, 85, 15) == (85, 85)
+
+
+def test_guard_sync_reset_without_memory_uses_floor() -> None:
+    assert guard_discharge_target(0, None, 15) == (None, 15)
+
+
+def test_guard_user_lowered_above_floor_updates_desired() -> None:
+    # Nutzer senkt bewusst auf 20 (>= floor) -> neuer Wunschwert, keine Korrektur
+    assert guard_discharge_target(20, 85, 15) == (20, None)
+
+
+def test_guard_deliberate_below_floor_only_raises_to_floor() -> None:
+    # 0 < 5 < floor -> bewusst zu niedrig -> nur auf floor, Wunschwert bleibt
+    assert guard_discharge_target(5, 85, 15) == (85, 15)
+
+
+def test_guard_no_reading_does_nothing() -> None:
+    assert guard_discharge_target(None, 85, 15) == (85, None)

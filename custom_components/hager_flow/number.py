@@ -197,6 +197,8 @@ class HagerFlowDischargeSocNumber(HagerFlowCloudEntity, NumberEntity):
         # Nie unter die Reserve-Untergrenze – notfalls hochziehen
         floor = min_discharge_soc(data.reserve_wh, data.capacity_wh)
         target = max(int(value), floor)
+        # Wunschwert merken, damit der Guard ihn nach einem Sync-Reset wiederherstellt
+        self.coordinator.note_discharge_target(target)
         await self._async_write(
             lambda: self.coordinator.api.async_set_discharge_soc(data.emc_serial, self._config, target),
             target,

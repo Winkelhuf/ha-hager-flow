@@ -163,6 +163,31 @@ def min_discharge_soc(reserve_wh: int | None, capacity_wh: int | None) -> int:
     return int(min(100, math.ceil(pct) + DISCHARGE_RESERVE_MARGIN_PCT))
 
 
+def guard_discharge_target(
+    current: int | None, desired: int | None, floor: int
+) -> tuple[int | None, int | None]:
+    """Entscheidet, ob das Entladelimit automatisch korrigiert werden muss.
+
+    Gibt ``(neuer_wunschwert, ziel)`` zurück. ``ziel`` ist ``None``, wenn nichts zu
+    tun ist, sonst der am Gerät zu setzende Wert.
+
+    Regeln:
+    - ``current >= floor``  → gültiger Wert, als Wunschwert merken; keine Korrektur.
+    - ``current == 0``      → typischer ``config/sync``-Reset → zurück auf den zuletzt
+      gemerkten Wunschwert (mind. ``floor``); ein höherer Nutzerwert bleibt erhalten.
+    - ``0 < current < floor`` → bewusst zu niedrig gesetzt, aber unter der Reserve →
+      nur auf die Untergrenze anheben (Wunschwert NICHT hochziehen).
+    - ``current is None``   → kein Messwert, nichts tun.
+    """
+    if current is None:
+        return desired, None
+    if current >= floor:
+        return current, None
+    if current == 0:
+        return desired, max(floor, desired or floor)
+    return desired, floor
+
+
 def parse_loading_priorisation(payload: Any) -> dict[str, Any]:
     """Antwort von ``/loading-priorisation`` lesen – kann ein JSON-String sein (doppelt kodiert)."""
     if isinstance(payload, str):
