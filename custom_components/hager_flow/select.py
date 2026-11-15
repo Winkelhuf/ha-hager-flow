@@ -60,9 +60,11 @@ class HagerFlowChargingPrioritySelect(HagerFlowCloudEntity, SelectEntity):
 
     @property
     def current_option(self) -> str | None:
+        return self._value(self._read_actual())
+
+    def _read_actual(self) -> str | None:
         value = (self.coordinator.data.config if self.coordinator.data else {}).get(CFG_BATTERY_BEFORE_CAR)
-        actual = None if value is None else (PRIORITY_BATTERY_FIRST if value else PRIORITY_CAR_FIRST)
-        return self._value(actual)
+        return None if value is None else (PRIORITY_BATTERY_FIRST if value else PRIORITY_CAR_FIRST)
 
     async def async_select_option(self, option: str) -> None:
         config = self.coordinator.data.config
@@ -96,6 +98,9 @@ class HagerFlowChargingStrategySelect(HagerFlowCloudEntity, SelectEntity):
     @property
     def current_option(self) -> str | None:
         return self._value(self._wallbox.strategy if self._wallbox else None)
+
+    def _read_actual(self) -> str | None:
+        return self._wallbox.strategy if self._wallbox else None
 
     async def async_select_option(self, option: str) -> None:
         wallbox, link_id = self._wallbox, self.coordinator.data.emc_link_id

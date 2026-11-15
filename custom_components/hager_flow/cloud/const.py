@@ -19,6 +19,9 @@ CLOUD_COOLDOWN = timedelta(seconds=30)
 # Sammelfenster: nach einem Klick so lange auf weitere Stufen warten, bevor einmal
 # in die Cloud geschrieben wird (schrittweises Hoch-/Runterklicken der Pfeile)
 CLOUD_DEBOUNCE = timedelta(seconds=1.5)
+# Nach dem Schreiben in diesem Takt nachsehen, ob das Gerät den Wunschwert bestätigt;
+# sobald bestätigt, endet die optimistische Maske sofort (sonst spätestens nach CLOUD_COOLDOWN)
+CLOUD_CONFIRM_INTERVAL = timedelta(seconds=5)
 
 # Felder der Anlagen-Konfiguration (PUT /installations/{id}/config)
 CFG_BATTERY_BEFORE_CAR = "emsBatteryBeforeCarMode"

@@ -87,6 +87,9 @@ class HagerFlowEmergencyReserveNumber(HagerFlowCloudEntity, NumberEntity):
     def native_value(self) -> float | None:
         return self._value(self.coordinator.data.reserve_wh if self.coordinator.data else None)
 
+    def _read_actual(self) -> int | None:
+        return self.coordinator.data.reserve_wh if self.coordinator.data else None
+
     @property
     def extra_state_attributes(self) -> dict[str, float | int | None]:
         data = self.coordinator.data
@@ -181,6 +184,10 @@ class HagerFlowDischargeSocNumber(HagerFlowCloudEntity, NumberEntity):
     def native_value(self) -> float | None:
         wb = self._wallbox
         return self._value(wb.discharge_soc if wb else None)
+
+    def _read_actual(self) -> int | None:
+        wb = self._wallbox
+        return wb.discharge_soc if wb else None
 
     @property
     def extra_state_attributes(self) -> dict[str, float | int | None]:

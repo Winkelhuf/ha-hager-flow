@@ -78,8 +78,11 @@ class HagerFlowCloudConfigSwitch(HagerFlowCloudEntity, SwitchEntity):
 
     @property
     def is_on(self) -> bool | None:
+        return self._value(self._read_actual())
+
+    def _read_actual(self) -> bool | None:
         value = self._config.get(self._field)
-        return self._value(None if value is None else bool(value))
+        return None if value is None else bool(value)
 
     async def _async_set(self, value: bool) -> None:
         if self._battery_first:
