@@ -6,6 +6,7 @@ https://github.com/hebrru/Hager-local – MIT License, Copyright (c) 2026 hebrru
 """
 from __future__ import annotations
 
+import asyncio
 import base64
 from dataclasses import dataclass
 import html as html_module
@@ -243,9 +244,18 @@ def describe_page(url: str, body: str) -> str:
 async def async_login(email: str, password: str) -> CloudTokens:
     """Meldet sich mit E-Mail/Passwort am myHager-Konto an und liefert die Bearer-Tokens."""
     headers = {
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
         "Accept-Language": "de-DE,de;q=0.9,en;q=0.8",
+        "Accept-Encoding": "gzip, deflate",
         "User-Agent": USER_AGENT,
+        "Upgrade-Insecure-Requests": "1",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Sec-Fetch-User": "?1",
+        "sec-ch-ua": '"Chromium";v="135", "Not-A.Brand";v="24", "Google Chrome";v="135"',
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"Windows"',
     }
     try:
         async with ClientSession(headers=headers, cookie_jar=CookieJar(unsafe=True, quote_cookie=False)) as session:
@@ -260,10 +270,18 @@ async def async_login(email: str, password: str) -> CloudTokens:
                 return HagerCloudAuthError(f"{reason} | Ablauf: " + " ; ".join(trail[-8:]))
 
             async def get(url: str):
-                async with session.get(url, headers=_cookie_header(session, url, jar), allow_redirects=False) as resp:
-                    _store_raw_cookies(str(resp.url), resp.headers.getall("Set-Cookie", []), jar)
-                    note("GET", str(resp.url), resp.status)
-                    return resp.status, resp.headers.get("Location"), str(resp.url), await resp.text()
+                # Manche Gateways liefern sporadisch 5xx – kurz warten und erneut versuchen
+                last = (0, None, url, "")
+                for attempt in range(3):
+                    async with session.get(url, headers=_cookie_header(session, url, jar), allow_redirects=False) as resp:
+                        _store_raw_cookies(str(resp.url), resp.headers.getall("Set-Cookie", []), jar)
+                        note("GET", str(resp.url), resp.status)
+                        last = (resp.status, resp.headers.get("Location"), str(resp.url), await resp.text())
+                    if last[0] in (502, 503, 504) and attempt < 2:
+                        await asyncio.sleep(1.0)
+                        continue
+                    break
+                return last
 
             async def post(url: str, data: dict[str, str], extra: dict[str, str] | None = None):
                 hdrs = {**(extra or {}), **_cookie_header(session, url, jar)}

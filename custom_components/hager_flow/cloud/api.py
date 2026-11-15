@@ -453,6 +453,9 @@ class HagerFlowCloudApi:
         """Ändert Felder der Anlagen-Konfiguration; emsBatteryBeforeCarMode schickt das Portal immer mit."""
         body = {CFG_BATTERY_BEFORE_CAR: bool(current.get(CFG_BATTERY_BEFORE_CAR, False)), **changes}
         await self._request("PUT", self._inst_url("/config"), body)
+        # Wie das Portal: Anlage als "zu synchronisieren" markieren, sonst übernimmt der
+        # EMC die Config-Änderung nicht ins Gerät (z. B. Modbus-Register 513 "Ladepriorität").
+        await self._request("PUT", self._inst_url(""), {"needToBeSynchronize": True})
         await self.async_sync()
 
     async def async_set_charging_strategy(self, emc_link_id: int, wallbox: CloudWallbox, strategy: str) -> None:
