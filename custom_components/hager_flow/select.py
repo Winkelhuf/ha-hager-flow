@@ -2,12 +2,12 @@
 from __future__ import annotations
 
 from homeassistant.components.select import SelectEntity
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .cloud.const import CFG_BATTERY_BEFORE_CAR, CHARGING_STRATEGIES
 from .cloud.coordinator import HagerFlowCloudCoordinator
-from .cloud.entity import HagerFlowCloudEntity, emc_device_info, wallbox_device_info
+from .cloud.entity import HagerFlowCloudEntity, emc_device_info, modbus_wallbox_device_info
 from .data import HagerFlowConfigEntry
 
 # Ladepriorität: sprachfreie Schlüssel wie beim Modbus-Sensor power_prioritaet_ziel
@@ -25,28 +25,13 @@ async def async_setup_entry(
     if cloud is None:
         return
 
-    async_add_entities([HagerFlowChargingPrioritySelect(cloud, entry.entry_id)])
-
-    modbus_wallboxes = entry.runtime_data.coordinator.discovered_wallboxes
-    known: set[int] = set()
-
-    @callback
-    def _add_new_wallboxes() -> None:
-        if not cloud.data:
-            return
-        new = [wb for evse_id, wb in cloud.data.wallboxes.items() if evse_id not in known]
-        if not new:
-            return
-        known.update(wb.evse_id for wb in new)
-        async_add_entities(
-            HagerFlowChargingStrategySelect(
-                cloud, entry.entry_id, wb.evse_id, wallbox_device_info(entry.entry_id, wb, modbus_wallboxes)
-            )
-            for wb in new
-        )
-
-    _add_new_wallboxes()
-    entry.async_on_unload(cloud.async_add_listener(_add_new_wallboxes))
+    entities: list[SelectEntity] = [HagerFlowChargingPrioritySelect(cloud, entry.entry_id)]
+    # Ladestrategie je Modbus-erkannter Wallbox fest anlegen – immer sichtbar und
+    # robust gegen Cloud-Ausfälle; wird aktiv, sobald die passende Cloud-Wallbox (per
+    # Name) vorliegt.
+    for slave, wb_name in entry.runtime_data.coordinator.discovered_wallboxes.items():
+        entities.append(HagerFlowChargingStrategySelect(cloud, entry.entry_id, slave, wb_name))
+    async_add_entities(entities)
 
 
 class HagerFlowChargingPrioritySelect(HagerFlowCloudEntity, SelectEntity):
@@ -82,14 +67,23 @@ class HagerFlowChargingStrategySelect(HagerFlowCloudEntity, SelectEntity):
     _attr_options = CHARGING_STRATEGIES
     _attr_icon = "mdi:ev-station"
 
-    def __init__(self, coordinator: HagerFlowCloudCoordinator, entry_id: str, evse_id: int, device_info) -> None:
-        super().__init__(coordinator, entry_id, "ladestrategie", device_info)
-        self._evse_id = evse_id
-        self._attr_unique_id = f"{entry_id}_cloud_ladestrategie_{evse_id}"
+    def __init__(self, coordinator: HagerFlowCloudCoordinator, entry_id: str, slave: int, wb_name: str) -> None:
+        super().__init__(coordinator, entry_id, "ladestrategie", modbus_wallbox_device_info(entry_id, slave, wb_name))
+        self._slave = slave
+        self._wb_name = wb_name
+        self._attr_unique_id = f"{entry_id}_cloud_ladestrategie_{slave}"
 
     @property
     def _wallbox(self):
-        return self.coordinator.data.wallboxes.get(self._evse_id) if self.coordinator.data else None
+        """Die Cloud-Wallbox zu dieser Modbus-Wallbox (per Namensabgleich)."""
+        data = self.coordinator.data
+        if not data:
+            return None
+        wanted = (self._wb_name or "").strip().casefold()
+        for wb in data.wallboxes.values():
+            if (wb.name or "").strip().casefold() == wanted:
+                return wb
+        return None
 
     @property
     def available(self) -> bool:

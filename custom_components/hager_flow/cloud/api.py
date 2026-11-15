@@ -43,6 +43,14 @@ _LOGGER = logging.getLogger(__name__)
 _TIMEOUT = ClientTimeout(total=30)
 
 
+def _is_transient_cloud_error(text: str) -> bool:
+    """Erkennt den sporadischen Lab-Serverfehler (HTTP 400 "invalid response output",
+    errno 104), der sich bei einem erneuten Versuch meist von selbst erledigt – im
+    Gegensatz zu echten 400 wie errno 101 ("invalid request payload")."""
+    t = (text or "").lower()
+    return '"errno":104' in t or "invalid response output" in t
+
+
 # --------------------------------------------------------------------------- #
 # Reine Hilfsfunktionen (ohne Netzwerk, testbar)
 # --------------------------------------------------------------------------- #
@@ -313,21 +321,33 @@ class HagerFlowCloudApi:
     async def _request(self, method: str, url: str, payload: dict[str, Any] | None = None, _retry: bool = True) -> Any:
         token = await self._access_token()
         headers = {"Accept": "application/json", "Authorization": f"Bearer {token}", "User-Agent": USER_AGENT}
-        try:
-            async with self._session.request(method, url, json=payload, headers=headers, timeout=_TIMEOUT) as resp:
-                if resp.status == 401 and _retry:
-                    await self._access_token(force=True)
-                    return await self._request(method, url, payload, _retry=False)
-                if resp.status in (401, 403):
-                    raise HagerCloudAuthError(f"Zugriff verweigert ({resp.status}) auf {url}")
-                text = await resp.text()
-                if resp.status >= 400:
-                    raise HagerCloudError(f"HTTP {resp.status} von {url}: {text[:200]}")
-                return json.loads(text) if text else None
-        except (ClientError, asyncio.TimeoutError) as err:
-            raise HagerCloudConnectionError(f"Cloud nicht erreichbar: {url}") from err
-        except ValueError as err:
-            raise HagerCloudError(f"Unerwartete Antwort von {url}") from err
+        # Transiente Lab-Fehler (sporadisches HTTP 400 "invalid response output" oder
+        # kurze Netzfehler) nicht sofort durchreichen, sondern kurz warten und
+        # erneut versuchen. Bewusst sparsam, um ein empfindliches Backend nicht zusätzlich
+        # zu belasten. Alle Schreibzugriffe sind idempotente Set-Operationen.
+        for attempt in range(3):
+            try:
+                async with self._session.request(method, url, json=payload, headers=headers, timeout=_TIMEOUT) as resp:
+                    if resp.status == 401 and _retry:
+                        await self._access_token(force=True)
+                        return await self._request(method, url, payload, _retry=False)
+                    if resp.status in (401, 403):
+                        raise HagerCloudAuthError(f"Zugriff verweigert ({resp.status}) auf {url}")
+                    text = await resp.text()
+                    if resp.status == 400 and attempt < 2 and _is_transient_cloud_error(text):
+                        _LOGGER.debug("Transienter Cloud-Fehler, Versuch %s: %s", attempt + 1, url)
+                        await asyncio.sleep(0.8)
+                        continue
+                    if resp.status >= 400:
+                        raise HagerCloudError(f"HTTP {resp.status} von {url}: {text[:200]}")
+                    return json.loads(text) if text else None
+            except (ClientError, asyncio.TimeoutError) as err:
+                if attempt < 2:
+                    await asyncio.sleep(0.8)
+                    continue
+                raise HagerCloudConnectionError(f"Cloud nicht erreichbar: {url}") from err
+            except ValueError as err:
+                raise HagerCloudError(f"Unerwartete Antwort von {url}") from err
 
     def _inst_url(self, suffix: str = "") -> str:
         if self.installation_id is None:

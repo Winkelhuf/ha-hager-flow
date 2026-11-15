@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from homeassistant.components.number import NumberEntity, NumberMode
 from homeassistant.const import PERCENTAGE, UnitOfEnergy
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .cloud.api import min_discharge_soc, reserve_percent
@@ -14,7 +14,7 @@ from .cloud.const import (
     DISCHARGE_RESERVE_MARGIN_PCT,
 )
 from .cloud.coordinator import HagerFlowCloudCoordinator
-from .cloud.entity import HagerFlowCloudEntity, emc_device_info, wallbox_device_info
+from .cloud.entity import HagerFlowCloudEntity, emc_device_info
 from .data import HagerFlowConfigEntry
 
 
@@ -28,38 +28,14 @@ async def async_setup_entry(
     if cloud is None:
         return
 
-    modbus_wallboxes = entry.runtime_data.coordinator.discovered_wallboxes
-    known: set[int] = set()
-    reserve_added = False
-
-    @callback
-    def _add_entities() -> None:
-        nonlocal reserve_added
-        if not cloud.data:
-            return
-
-        # Notstromreserve einmal anlegen, sobald der Speicher-Link einen Wert liefert
-        if not reserve_added and cloud.data.storage_link_id is not None and cloud.data.reserve_wh is not None:
-            reserve_added = True
-            async_add_entities([HagerFlowEmergencyReserveNumber(cloud, entry.entry_id)])
-
-        # "Bis Ladezustand" je Wallbox, sobald die Wallbox-Konfiguration den Wert liefert
-        new = [
-            wb
-            for evse_id, wb in cloud.data.wallboxes.items()
-            if evse_id not in known and wb.discharge_soc is not None
+    # EMC-weite Cloud-Funktionen fest anlegen – immer sichtbar und robust gegen
+    # Cloud-Ausfälle; sie werden aktiv, sobald die Cloud liefert (sonst "unavailable").
+    async_add_entities(
+        [
+            HagerFlowEmergencyReserveNumber(cloud, entry.entry_id),
+            HagerFlowDischargeSocNumber(cloud, entry.entry_id),
         ]
-        if new:
-            known.update(wb.evse_id for wb in new)
-            async_add_entities(
-                HagerFlowDischargeSocNumber(
-                    cloud, entry.entry_id, wb.evse_id, wallbox_device_info(entry.entry_id, wb, modbus_wallboxes)
-                )
-                for wb in new
-            )
-
-    _add_entities()
-    entry.async_on_unload(cloud.async_add_listener(_add_entities))
+    )
 
 
 class HagerFlowEmergencyReserveNumber(HagerFlowCloudEntity, NumberEntity):
@@ -82,6 +58,11 @@ class HagerFlowEmergencyReserveNumber(HagerFlowCloudEntity, NumberEntity):
         # Höchstens die ganze Batteriekapazität; ohne bekannte Kapazität ein großzügiger Wert
         cap = self.coordinator.data.capacity_wh if self.coordinator.data else None
         return float(cap) if cap else 100000.0
+
+    @property
+    def available(self) -> bool:
+        data = self.coordinator.data
+        return super().available and data is not None and data.storage_link_id is not None
 
     @property
     def native_value(self) -> float | None:
@@ -140,14 +121,20 @@ class HagerFlowDischargeSocNumber(HagerFlowCloudEntity, NumberEntity):
     _attr_mode = NumberMode.BOX
     _attr_icon = "mdi:battery-arrow-down"
 
-    def __init__(self, coordinator: HagerFlowCloudCoordinator, entry_id: str, evse_id: int, device_info) -> None:
-        super().__init__(coordinator, entry_id, "entladen_bis_ladezustand", device_info)
-        self._evse_id = evse_id
-        self._attr_unique_id = f"{entry_id}_cloud_entladen_bis_ladezustand_{evse_id}"
+    def __init__(self, coordinator: HagerFlowCloudCoordinator, entry_id: str) -> None:
+        super().__init__(coordinator, entry_id, "entladen_bis_ladezustand", emc_device_info(entry_id))
+        self._attr_unique_id = f"{entry_id}_cloud_entladen_bis_ladezustand"
 
     @property
-    def _wallbox(self):
-        return self.coordinator.data.wallboxes.get(self._evse_id) if self.coordinator.data else None
+    def _discharge_value(self) -> int | None:
+        """Systemweiter Entladegrenzen-Wert (loading-priorisation gilt für alle Wallboxen)."""
+        data = self.coordinator.data
+        if not data:
+            return None
+        return max(
+            (wb.discharge_soc for wb in data.wallboxes.values() if wb.discharge_soc is not None),
+            default=None,
+        )
 
     @property
     def _config(self) -> dict:
@@ -172,22 +159,14 @@ class HagerFlowDischargeSocNumber(HagerFlowCloudEntity, NumberEntity):
 
     @property
     def available(self) -> bool:
-        wb = self._wallbox
-        return (
-            super().available
-            and wb is not None
-            and wb.discharge_soc is not None
-            and self._discharge_enabled
-        )
+        return super().available and self._discharge_value is not None and self._discharge_enabled
 
     @property
     def native_value(self) -> float | None:
-        wb = self._wallbox
-        return self._value(wb.discharge_soc if wb else None)
+        return self._value(self._discharge_value)
 
     def _read_actual(self) -> int | None:
-        wb = self._wallbox
-        return wb.discharge_soc if wb else None
+        return self._discharge_value
 
     @property
     def extra_state_attributes(self) -> dict[str, float | int | None]:

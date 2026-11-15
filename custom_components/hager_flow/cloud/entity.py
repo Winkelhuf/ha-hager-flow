@@ -56,6 +56,17 @@ def wallbox_device_info(entry_id: str, wallbox: CloudWallbox, modbus_wallboxes: 
     )
 
 
+def modbus_wallbox_device_info(entry_id: str, slave: int, name: str) -> DeviceInfo:
+    """Verweist auf das bereits vorhandene Modbus-Wallbox-Gerät (siehe entity/base.py),
+    damit Cloud-Entitäten direkt daran hängen – unabhängig davon, ob die Cloud gerade lädt."""
+    return DeviceInfo(
+        identifiers={(DOMAIN, f"{DOMAIN}_wb_{slave}_{entry_id}")},
+        name=name,
+        manufacturer="Hager",
+        model="Witty Wallbox",
+    )
+
+
 class HagerFlowCloudEntity(CoordinatorEntity[HagerFlowCloudCoordinator]):
     """Gemeinsame Logik: Name aus translations, Kategorie Konfiguration, Klickschutz, Fehler.
 
@@ -163,12 +174,13 @@ class HagerFlowCloudEntity(CoordinatorEntity[HagerFlowCloudCoordinator]):
 
     async def _async_confirm_poll(self, _now: Any = None) -> None:
         """Erzwingt einen Refresh; die Bestätigung selbst beendet die Maske in
-        _handle_coordinator_update. Läuft, bis das Gerät bestätigt hat oder die Sperre endet."""
+        _handle_coordinator_update. Läuft, bis das Gerät bestätigt hat oder die Sperre endet.
+        Bei gestörter Cloud wird nicht weiter nachgepollt (der 30-s-Fallback beendet die Maske)."""
         self._confirm_unsub = None
-        if not self._cooling_down:
+        if not self._cooling_down or getattr(self.coordinator, "degraded", False):
             return
         await self.coordinator.async_refresh()
-        if self._cooling_down:
+        if self._cooling_down and not getattr(self.coordinator, "degraded", False):
             self._schedule_confirm_poll()
 
     async def async_will_remove_from_hass(self) -> None:

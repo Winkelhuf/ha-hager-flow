@@ -33,6 +33,9 @@ CFG_BATTERY_TO_CAR_BOOST = "emsWallboxEnforcePowerAssignment"
 CFG_EMERGENCY_RESERVE = "emergencyPowerCapacityReserve"
 # Kapazität je Batteriemodul (batDcbCount × 3000 Wh)
 BATTERY_MODULE_WH = 3000
+# Standard-Entladegrenze, die beim Aktivieren der Entladung ins Auto gesetzt wird:
+# 90 % = es wird zunächst kaum entladen, bis der Nutzer aktiv einen niedrigeren Wert wählt.
+DEFAULT_DISCHARGE_SOC_ON_ENABLE = 90
 # Das Entladelimit (Bis Ladezustand) muss immer mindestens so viel Prozent
 # ÜBER der Notstromreserve liegen (und darf nie darunter)
 DISCHARGE_RESERVE_MARGIN_PCT = 10

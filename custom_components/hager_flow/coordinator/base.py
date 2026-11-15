@@ -144,6 +144,10 @@ class HagerFlowCoordinator(DataUpdateCoordinator):
                     self._read_register_value, template["addr"], slave, template["type"], cnt
                 )
                 if val is not None:
+                    # uint32-Energiezähler melden "kein Wert" als 0xFFFFFFFF (z. B. keine
+                    # aktive Ladesession) – sonst würde das als ~4.294.967 kWh erscheinen.
+                    if template["type"] == "uint32" and val == 0xFFFFFFFF:
+                        continue
                     data[key] = val if template["type"] == "string" else val * template["scale"]
             
             # ZUSÄTZLICH: Boostmodus (Register 4631, uint16) immer für den Schalter im Hintergrund mitlesen
