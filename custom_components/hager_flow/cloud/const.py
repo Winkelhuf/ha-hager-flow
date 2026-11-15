@@ -16,6 +16,9 @@ TOKEN_REFRESH_MARGIN = timedelta(minutes=2)
 CLOUD_SCAN_INTERVAL = timedelta(seconds=60)
 # So lange braucht eine Änderung über die Cloud bis zum Gerät und zurück
 CLOUD_COOLDOWN = timedelta(seconds=30)
+# Sammelfenster: nach einem Klick so lange auf weitere Stufen warten, bevor einmal
+# in die Cloud geschrieben wird (schrittweises Hoch-/Runterklicken der Pfeile)
+CLOUD_DEBOUNCE = timedelta(seconds=1.5)
 
 # Felder der Anlagen-Konfiguration (PUT /installations/{id}/config)
 CFG_BATTERY_BEFORE_CAR = "emsBatteryBeforeCarMode"

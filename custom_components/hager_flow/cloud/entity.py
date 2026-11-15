@@ -11,14 +11,14 @@ import logging
 from typing import Any
 
 from homeassistant.const import EntityCategory
-from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..const import DOMAIN
 from .api import CloudWallbox
-from .const import CLOUD_COOLDOWN
+from .const import CLOUD_COOLDOWN, CLOUD_DEBOUNCE
 from .coordinator import HagerFlowCloudCoordinator
 from .errors import HagerCloudError
 
@@ -73,17 +73,22 @@ class HagerFlowCloudEntity(CoordinatorEntity[HagerFlowCloudCoordinator]):
         self._attr_device_info = device_info
         self._optimistic: Any = None
         self._cooldown_until: datetime | None = None
+        # Laufender Schreibbefehl im Sammelfenster (letzter Klick gewinnt)
+        self._pending: tuple[Callable[[], Awaitable[None]], Any] | None = None
+        self._debounce_unsub: Callable[[], None] | None = None
 
     @property
     def _cooling_down(self) -> bool:
         return self._cooldown_until is not None and datetime.now() < self._cooldown_until
 
     def _value(self, actual: Any) -> Any:
-        """Während des Klickschutzes den gewählten Wert zeigen, danach den echten."""
-        return self._optimistic if self._cooling_down else actual
+        """Im Sammelfenster und während der Sperre den gewählten Wert zeigen, sonst den echten."""
+        return self._optimistic if (self._pending is not None or self._cooling_down) else actual
 
     async def _async_write(self, action: Callable[[], Awaitable[None]], optimistic: Any) -> None:
-        """Schreibbefehl ausführen – mit Klickschutz, übersetzten Fehlern und Neuladen."""
+        """Klick entgegennehmen: im 1,5-s-Sammelfenster nur den Wert übernehmen und den
+        Timer neu starten; erst danach wird einmal in die Cloud geschrieben. Während der
+        30-s-Sperre nach einem Schreibvorgang werden weitere Klicks mit Hinweis abgewiesen."""
         if self._cooling_down:
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
@@ -92,6 +97,24 @@ class HagerFlowCloudEntity(CoordinatorEntity[HagerFlowCloudCoordinator]):
                     "seconds": str(int((self._cooldown_until - datetime.now()).total_seconds()) + 1)
                 },
             )
+        # Wert sofort anzeigen und den Schreibbefehl bis zum Ende des Sammelfensters zurückstellen
+        self._optimistic = optimistic
+        self._pending = (action, optimistic)
+        self.async_write_ha_state()
+        if self._debounce_unsub is not None:
+            self._debounce_unsub()
+        self._debounce_unsub = async_call_later(
+            self.hass, CLOUD_DEBOUNCE.total_seconds(), self._async_commit
+        )
+
+    async def _async_commit(self, _now: Any = None) -> None:
+        """Nach Ablauf des Sammelfensters den zuletzt gewählten Wert in die Cloud schreiben."""
+        self._debounce_unsub = None
+        pending = self._pending
+        self._pending = None
+        if pending is None:
+            return
+        action, optimistic = pending
         self._optimistic = optimistic
         self._cooldown_until = datetime.now() + CLOUD_COOLDOWN
         self.async_write_ha_state()
@@ -101,17 +124,19 @@ class HagerFlowCloudEntity(CoordinatorEntity[HagerFlowCloudCoordinator]):
             self._cooldown_until = None
             self.async_write_ha_state()
             _LOGGER.error("Schreiben in die Hager flow Cloud fehlgeschlagen: %s", err)
-            raise HomeAssistantError(
-                translation_domain=DOMAIN,
-                translation_key="cloud_write_failed",
-                translation_placeholders={"error": str(err)},
-            ) from err
-        finally:
             await self.coordinator.async_request_refresh()
-        # Nach Ablauf des Klickschutzes den echten Stand anzeigen
+            return
+        await self.coordinator.async_request_refresh()
+        # Nach Ablauf der Sperre den echten Stand anzeigen
         self.async_on_remove(
             async_call_later(self.hass, CLOUD_COOLDOWN.total_seconds() + 1, self._async_cooldown_over)
         )
+
+    async def async_will_remove_from_hass(self) -> None:
+        if self._debounce_unsub is not None:
+            self._debounce_unsub()
+            self._debounce_unsub = None
+        await super().async_will_remove_from_hass()
 
     async def _async_cooldown_over(self, _now: Any) -> None:
         await self.coordinator.async_request_refresh()
