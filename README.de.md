@@ -222,7 +222,7 @@ Die Einrichtung läuft in zwei Stufen: die **lokale Modbus**-Verbindung (alles, 
 2. Nur die **IP-Adresse** deines XEM470 eingeben (Vorgabe: `192.168.70.30`) und **Absenden**.
 3. Fertig – die Auto-Discovery ordnet deine Hardware in saubere, geräteweise Entitäten. Mehr ist nicht einzugeben.
 
-![Integration hinzufügen – nur die IP-Adresse eingeben](docs/images/setup-1-ip.png)
+<img src="docs/images/setup-1-ip.png" alt="Integration hinzufügen – nur die IP-Adresse eingeben" width="60%">
 
 ### 2. Cloud-Zugang (optional – was Modbus nicht schreiben kann)
 
@@ -230,7 +230,7 @@ Die Einrichtung läuft in zwei Stufen: die **lokale Modbus**-Verbindung (alles, 
 2. **Cloud-Zugang aktivieren** einschalten und **myHager**-E-Mail und -Passwort eingeben.
 3. Die passende Anlage wird automatisch über die per Modbus gelesene EMC-Seriennummer erkannt.
 
-![Konfigurieren – Cloud-Zugang aktivieren und myHager-Login eingeben](docs/images/setup-2-cloud.png)
+<img src="docs/images/setup-2-cloud.png" alt="Konfigurieren – Cloud-Zugang aktivieren und myHager-Login eingeben" width="60%">
 
 Damit kommen die [Nur-Cloud-Steuerungen](#-optional-cloud-zugang-für-erweiterte-funktionen) dazu (Ladepriorität, Entladung ins Auto, Ladestrategie, Entladelimit, Notstromreserve). Über **Konfigurieren** jederzeit wieder abschaltbar.
 
