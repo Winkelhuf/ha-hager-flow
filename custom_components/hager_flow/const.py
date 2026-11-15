@@ -5,7 +5,8 @@ from logging import Logger, getLogger
 LOGGER: Logger = getLogger(__package__)
 
 DOMAIN = "hager_flow"
-VERSION = "0.3.0"
+# Maßgeblich ist die Version in manifest.json; diese Konstante nur zur Information.
+VERSION = "0.9.0"
 
 # Optionaler Cloud-Zugang (Optionen der Integration)
 CONF_CLOUD_ENABLED = "cloud_enabled"
